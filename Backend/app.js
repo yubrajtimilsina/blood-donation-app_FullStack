@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const authRoute = require('./routes/auth');
 const cors = require('cors');
 
 
@@ -10,5 +11,6 @@ app.use(cors());
 app.use(express.json());
 
 //ROUTES
+app.use("/api/v1/auth",    authRoute);
 
 module.exports = app;
