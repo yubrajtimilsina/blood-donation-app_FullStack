@@ -37,7 +37,7 @@ const DonorSchema = mongoose.Schema({
         type:String,      
     },
     bloodpressure:{
-        type:String,
+        type:Number,
     },
     status:{
         type:Number,
