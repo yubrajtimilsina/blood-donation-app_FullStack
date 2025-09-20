@@ -5,6 +5,7 @@ const cron = require('node-cron');
 
 const mongoose = require('mongoose');
 const dbConnection = require('./utils/db');
+const sendDetailsProspectEmail = require('./EmailServices/sendDetailsProspect');
 
 
 dotenv.config();
@@ -15,7 +16,7 @@ const PORT = process.env.PORT
 //Schedule Task
 const run = () => {
    cron.schedule('* * * * * ', () => {
-    
+    sendDetailsProspectEmail();
    });
     
 }
