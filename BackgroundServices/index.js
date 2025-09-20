@@ -8,7 +8,7 @@ const dbConnection = require('./utils/db');
 const sendDetailsProspectEmail = require('./EmailServices/sendDetailsProspect');
 const sendEligibilityEmail = require('./EmailServices/sendEligibilityEmail');
 const sendBloodDonationReminder = require('./EmailServices/sendBloodDonationReminder');
-
+const sendDonorDetailsEmail = require('./EmailServices/sendDonorDetailsEmail');
 
 dotenv.config();
 
@@ -21,6 +21,7 @@ const run = () => {
     sendDetailsProspectEmail();
     sendEligibilityEmail();
     sendBloodDonationReminder();
+    sendDonorDetailsEmail();
    });
     
 }
