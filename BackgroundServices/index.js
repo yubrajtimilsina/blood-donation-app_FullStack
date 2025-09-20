@@ -6,6 +6,8 @@ const cron = require('node-cron');
 const mongoose = require('mongoose');
 const dbConnection = require('./utils/db');
 const sendDetailsProspectEmail = require('./EmailServices/sendDetailsProspect');
+const sendEligibilityEmail = require('./EmailServices/sendEligibilityEmail');
+const sendBloodDonationReminder = require('./EmailServices/sendBloodDonationReminder');
 
 
 dotenv.config();
@@ -17,6 +19,8 @@ const PORT = process.env.PORT
 const run = () => {
    cron.schedule('* * * * * ', () => {
     sendDetailsProspectEmail();
+    sendEligibilityEmail();
+    sendBloodDonationReminder();
    });
     
 }
