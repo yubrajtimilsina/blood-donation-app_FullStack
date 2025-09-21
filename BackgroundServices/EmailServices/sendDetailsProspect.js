@@ -1,6 +1,6 @@
 const ejs = require('ejs');
 const dotenv = require('dotenv');
-const Prospect = require('../../models/Prospect');
+const Prospect = require('../models/Prospect');
 const sendMail = require('../helpers/sendmail');
 
 dotenv.config();

@@ -1,4 +1,4 @@
-const Donor = require('../models/donor');
+const Donor = require("../models/Donor");
 
 // Create a new donor
 const createDonor = async (req, res) => {
