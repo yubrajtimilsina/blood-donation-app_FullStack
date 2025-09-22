@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Admin from './pages/Admin';
 import Prospects from './pages/Prospects';
 import Donors from './pages/Donors';
+import Menu from './components/Menu';
 
 function App() {
 
@@ -12,7 +13,7 @@ function App() {
     return(
       <div className='flex'>
         <div>
-          <h1>Menu</h1>
+          <Menu />
         </div>
         <div>
           <Outlet/>
