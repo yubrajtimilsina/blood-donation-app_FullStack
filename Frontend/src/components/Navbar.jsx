@@ -5,7 +5,7 @@ const Navbar = () => {
     <div className="flex items-center justify-between h-[100px] px-[200px] shadow-md bg-white sticky top-0 z-50">
       {/* Logo */}
       <img
-        src="/logo1.png"
+        src="/logo2.png"
         alt="Logo"
         className="cursor-pointer w-[120px] h-auto"
       />
