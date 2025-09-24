@@ -2,6 +2,7 @@ import React from 'react'
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import Featured from '../components/Featured'
+import Contact from '../components/Contact'
 
 const Home = () => {
   return (
@@ -9,6 +10,7 @@ const Home = () => {
       <Navbar />
       <Hero />
       <Featured />
+      <Contact />
     </div>
   )
 }
