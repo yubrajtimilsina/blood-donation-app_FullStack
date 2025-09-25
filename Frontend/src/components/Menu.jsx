@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+
 import {
   FaBox,
   FaCalendarAlt,
@@ -18,12 +20,6 @@ import {
   FaHeartbeat
 } from "react-icons/fa";
 
-// Mock Link component for demonstration
-const Link = ({ to, children, onClick, className }) => (
-  <a href={to} onClick={onClick} className={className}>
-    {children}
-  </a>
-);
 
 const Menu = () => {
   const [activeLink, setActiveLink] = useState("/admin");
