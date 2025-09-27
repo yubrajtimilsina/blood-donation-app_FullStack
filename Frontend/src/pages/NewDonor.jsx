@@ -8,8 +8,6 @@ const NewDonor = () => {
   const [inputs, setInputs] = useState({});
   const user = useSelector((state) => state.user);
 
-  
-
   const handleChange = (e) => {
     setInputs((prev) => {
       return { ...prev, [e.target.name]: e.target.value };
