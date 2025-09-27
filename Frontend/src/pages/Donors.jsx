@@ -1,8 +1,8 @@
 import { DataGrid } from "@mui/x-data-grid";
 import { Link } from "react-router-dom";
 import { FaTrash } from "react-icons/fa";
-import { useEffect, useState } from "react";;
-import { publicRequest } from "../requestMethods";
+import { useEffect, useState } from "react";
+import { publicRequest } from "../requestMethods.js";
 
 const Donors = () => {
   const [donors, setDonors] = useState([]);

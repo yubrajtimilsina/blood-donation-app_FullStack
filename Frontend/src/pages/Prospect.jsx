@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { publicRequest } from "../requestMethods";
 
 const Prospect = () => {
   const [prospect, setProspect] = useState({});
