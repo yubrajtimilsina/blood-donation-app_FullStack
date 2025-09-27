@@ -9,7 +9,7 @@ const DonorSchema = mongoose.Schema({
         type:String,
         required:true,
     },
-    phone:{
+    tel:{
         type:String,
         required:true
     },
