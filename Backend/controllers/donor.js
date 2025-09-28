@@ -11,7 +11,7 @@ const createDonor = async (req, res) => {
     }  
 };
 
-// Get all donors
+// Get all donor
 const getAlldonors = async (req, res) => {
     try {
         const donors = await Donor.find().sort({ createdAt: -1 });
