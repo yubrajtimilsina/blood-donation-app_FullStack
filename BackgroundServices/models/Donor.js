@@ -17,7 +17,7 @@ const DonorSchema = mongoose.Schema({
         type:String,
         required:true
     },
-    bloodGroup:{
+    bloodgroup:{
         type:String,
         required:true
     },

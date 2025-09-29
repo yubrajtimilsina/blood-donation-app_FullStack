@@ -39,7 +39,6 @@ const Menu = () => {
       section: "Main",
       items: [
         { path: "/admin", icon: FaHome, label: "Dashboard", primary: true },
-        { path: "/profile", icon: FaUser, label: "Profile" }
       ]
     },
     {

@@ -16,18 +16,22 @@ dotenv.config();
 const PORT = process.env.PORT
 
 //Schedule Task
+// REPLACE the run function:
 const run = () => {
-   cron.schedule('* * * * * ', () => {
-    sendDetailsProspectEmail();
-    sendEligibilityEmail();
-    sendBloodDonationReminder();
-    sendDonorDetailsEmail();
-   });
-    
-}
-
+    // Run every hour instead of every second to prevent spam
+    cron.schedule('0 */1 * * *', () => {
+     console.log('Running background services...');
+     sendDetailsProspectEmail();
+     sendEligibilityEmail();
+     sendBloodDonationReminder();
+     sendDonorDetailsEmail();
+    });
+ }
+ // Actually call the function!
 
 app.listen(PORT, () => {
     console.log(`Background Services running on port ${PORT}`);
     dbConnection();
 });
+
+run();

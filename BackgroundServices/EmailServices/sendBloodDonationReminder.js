@@ -19,8 +19,8 @@ const sendBloodDonationReminder = async () => {
       // calculate the difference between donor date and today's date
       const donorDate = new Date(donor.date);
       const today = new Date();
-      const diffTime = math.abs(today - donorDate);
-      const diffDays = math.cell(diffTime / (1000 * 60 * 60 * 24));
+      const diffTime = Math.abs(today - donorDate);
+      const diffDays = Math.cell(diffTime / (1000 * 60 * 60 * 24));
 
       if (diffDays > 90) {
         ejs.renderFile(

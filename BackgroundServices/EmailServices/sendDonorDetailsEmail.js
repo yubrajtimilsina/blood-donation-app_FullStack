@@ -12,17 +12,19 @@ const sendDonorDetailsEmail = async () => {
         for (let donor of donors) {
             ejs.renderFile(
                 "templates/BloodDonationDonor.ejs",
-                { name: donor.name, 
-                age: donor.age, 
-                weight: donor.weight,
-                 email: donor.email,
-                 phone: donor.phone,
-                 bloodGroup: donor.bloodGroup,
-                  address: donor.address,
-                 diseases: donor.diseases,
+                { 
+                    name: donor.name, 
+                    age: donor.age, 
+                    weight: donor.weight,
+                    email: donor.email,
+                    tel: donor.tel,  // FIXED: was donor.phone
+                    address: donor.address,
+                    bloodgroup: donor.bloodGroup,  // FIXED: was donor.bloodGroup
+                    diseases: donor.diseases,
                     bloodpressure: donor.bloodpressure,
-                    date : donor.date
+                    date: donor.date
                 },
+
                 async (err, data) => {  
                     let messageoptions = {
                         from: process.env.EMAIL_USER,

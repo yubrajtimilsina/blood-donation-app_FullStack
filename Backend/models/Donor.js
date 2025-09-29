@@ -17,13 +17,12 @@ const DonorSchema = mongoose.Schema({
         type:String,
         required:true
     },
-    bloodGroup:{
+    bloodgroup:{
         type:String,
         required:true
     },
     age:{
-        type:Number,
-        required:true
+        type:Number
     },
     weight:{
         type:Number,
@@ -37,7 +36,7 @@ const DonorSchema = mongoose.Schema({
         type:String,      
     },
     bloodpressure:{
-        type:Number,
+        type:Number
     },
     status:{
         type:Number,

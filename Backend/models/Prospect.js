@@ -3,11 +3,11 @@ const mongoose = require("mongoose");
 const ProspectSchema = mongoose.Schema({
     name:{
         type:String,
-         require:true
+         required:true
         },
     email:{
         type:String,
-         require:true
+         required:true
     },
     address:{
         type:String
@@ -17,7 +17,7 @@ const ProspectSchema = mongoose.Schema({
     },
     bloodgroup:{
         type:String,
-            require:true
+            required:true
     },
     weight:{
         type:Number
@@ -27,7 +27,7 @@ const ProspectSchema = mongoose.Schema({
     age:{type:Number},
     bloodpressure:{
         type:Number,
-        require:true
+        required:true
     },
     status:{type:Number, default:0}
 })
