@@ -8,7 +8,7 @@ const Featured = () => {
     bloodUnits: 0
   });
 
-  // Animation effect for counting numbers
+  // Animation effect 
   useEffect(() => {
     const targetStats = {
       livesSaved: 1200,
