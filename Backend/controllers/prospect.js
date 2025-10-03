@@ -3,7 +3,7 @@ const Prospect = require("../models/Prospect");
 // Create a new prospect
 const createProspect = async (req, res) => {
   try {
-    const newProspect = Prospect(req.body);
+    const newProspect =new Prospect(req.body);
     const prospect = await newProspect.save();
     res.status(201).json(prospect);
   } catch (error) {
