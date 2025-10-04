@@ -1,6 +1,6 @@
 import { DataGrid } from "@mui/x-data-grid";
 import { Link } from "react-router-dom";
-import { FaTrash, FaEdit, FaTint, FaSearch } from "react-icons/fa";
+import { FaTrash, FaEdit, FaTint, FaSearch, FaEye } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { publicRequest } from "../requestMethods.js";
 
@@ -12,40 +12,9 @@ const Donors = () => {
 
   useEffect(() => {
     const handleResize = () => setIsMobileView(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  const columns = [
-    { field: "_id", headerName: "ID", width: 90 },
-    { field: "name", headerName: "Name", width: 150 },
-    { field: "address", headerName: "Address", width: 150 },
-    { field: "bloodgroup", headerName: "Blood Type", width: 130 },
-    { field: "diseases", headerName: "Disease", width: 150 },
-    {
-      field: "edit",
-      headerName: "Edit",
-      width: 150,
-      renderCell: (params) => (
-        <Link to={`/admin/donor/${params.row._id}`}>
-          <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors">
-            Edit
-          </button>
-        </Link>
-      ),
-    },
-    {
-      field: "delete",
-      headerName: "Delete",
-      width: 150,
-      renderCell: (params) => (
-        <FaTrash
-          className="text-red-500 cursor-pointer hover:text-red-700 text-lg"
-          onClick={() => handleDelete(params.row._id)}
-        />
-      ),
-    },
-  ];
 
   useEffect(() => {
     getDonors();
@@ -71,19 +40,63 @@ const Donors = () => {
     }
   };
 
-  const filteredDonors = donors.filter(donor => {
-    const matchesSearch = donor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          donor.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesBloodGroup = filterBloodGroup === "" || donor.bloodgroup === filterBloodGroup;
+  const filteredDonors = donors.filter((donor) => {
+    const matchesSearch =
+      donor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      donor.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesBloodGroup =
+      filterBloodGroup === "" || donor.bloodgroup === filterBloodGroup;
     return matchesSearch && matchesBloodGroup;
   });
 
   const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
+  const columns = [
+    { field: "_id", headerName: "ID", width: 90 },
+    { field: "name", headerName: "Name", width: 150 },
+    { field: "address", headerName: "Address", width: 150 },
+    { field: "bloodgroup", headerName: "Blood Type", width: 130 },
+    { field: "diseases", headerName: "Disease", width: 150 },
+    {
+      field: "edit",
+      headerName: "Edit",
+      width: 100,
+      renderCell: (params) => (
+        <Link to={`/admin/donor/${params.row._id}`}>
+          <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded transition-colors">
+            <FaEdit />
+          </button>
+        </Link>
+      ),
+    },
+    {
+      field: "portal",
+      headerName: "Portal",
+      width: 110,
+      renderCell: (params) => (
+        <Link to={`/admin/donor-portal/${params.row._id}`}>
+          <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded transition-colors">
+            <FaEye />
+          </button>
+        </Link>
+      ),
+    },
+    {
+      field: "delete",
+      headerName: "Delete",
+      width: 100,
+      renderCell: (params) => (
+        <FaTrash
+          className="text-red-500 cursor-pointer hover:text-red-700 text-lg"
+          onClick={() => handleDelete(params.row._id)}
+        />
+      ),
+    },
+  ];
+
   return (
     <div className="w-full min-h-screen bg-gray-50 p-4 lg:p-6">
       <div className="max-w-7xl mx-auto">
-        
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-4 lg:p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -92,7 +105,9 @@ const Donors = () => {
                 <FaTint className="text-red-500" />
                 All Donors
               </h1>
-              <p className="text-gray-600 text-sm mt-1">{filteredDonors.length} total donors</p>
+              <p className="text-gray-600 text-sm mt-1">
+                {filteredDonors.length} total donors
+              </p>
             </div>
             <Link to="/admin/newdonor">
               <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 w-full sm:w-auto">
@@ -119,92 +134,48 @@ const Donors = () => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
             >
               <option value="">All Blood Groups</option>
-              {bloodGroups.map(group => (
-                <option key={group} value={group}>{group}</option>
+              {bloodGroups.map((group) => (
+                <option key={group} value={group}>
+                  {group}
+                </option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* Mobile Card View */}
-        {isMobileView ? (
-          <div className="space-y-4">
-            {filteredDonors.map((donor) => (
-              <div key={donor._id} className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg text-gray-800">{donor.name}</h3>
-                    <p className="text-sm text-gray-600">{donor.email}</p>
-                  </div>
-                  <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-semibold">
-                    {donor.bloodgroup}
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                  <div>
-                    <span className="text-gray-500">Address:</span>
-                    <p className="text-gray-800">{donor.address}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Phone:</span>
-                    <p className="text-gray-800">{donor.tel}</p>
-                  </div>
-                </div>
-
-                {donor.diseases && (
-                  <p className="text-xs text-gray-600 mb-3">
-                    <span className="font-medium">Conditions:</span> {donor.diseases}
-                  </p>
-                )}
-
-                <div className="flex gap-2">
-                  <Link to={`/admin/donor/${donor._id}`} className="flex-1">
-                    <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-colors">
-                      <FaEdit /> Edit
-                    </button>
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(donor._id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          /* Desktop Table View */
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <DataGrid
-              rows={filteredDonors}
-              getRowId={(row) => row._id}
-              columns={columns}
-              pageSize={10}
-              rowsPerPageOptions={[10, 25, 50]}
-              checkboxSelection
-              disableSelectionOnClick
-              autoHeight
-              sx={{
-                border: 'none',
-                '& .MuiDataGrid-cell': {
-                  borderBottom: '1px solid #f3f4f6',
-                },
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: '#f9fafb',
-                  borderBottom: '2px solid #e5e7eb',
-                },
-              }}
-            />
-          </div>
-        )}
+        {/* Table View */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <DataGrid
+            rows={filteredDonors}
+            getRowId={(row) => row._id}
+            columns={columns}
+            pageSize={10}
+            rowsPerPageOptions={[10, 25, 50]}
+            checkboxSelection
+            disableSelectionOnClick
+            autoHeight
+            sx={{
+              border: "none",
+              "& .MuiDataGrid-cell": {
+                borderBottom: "1px solid #f3f4f6",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f9fafb",
+                borderBottom: "2px solid #e5e7eb",
+              },
+            }}
+          />
+        </div>
 
         {filteredDonors.length === 0 && (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <FaTint className="text-gray-300 text-6xl mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No donors found</h3>
-            <p className="text-gray-500">Try adjusting your search or filters</p>
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              No donors found
+            </h3>
+            <p className="text-gray-500">
+              Try adjusting your search or filters
+            </p>
           </div>
         )}
       </div>

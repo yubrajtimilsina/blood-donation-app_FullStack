@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { publicRequest } from '../requestMethods';
 import { FaTint, FaCalendar, FaCertificate, FaHistory } from 'react-icons/fa';
 
 const DonorPortal = () => {
+  const { id } = useParams();
   const [donorData, setDonorData] = useState(null);
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,13 +15,9 @@ const DonorPortal = () => {
 
   const fetchDonorData = async () => {
     try {
-      // Assuming donor searches by email
-      const email = prompt('Enter your email to view your donation history:');
-      if (!email) return;
-
-      const res = await publicRequest.get(`/donors?email=${email}`);
-      setDonorData(res.data[0]);
-      setDonations(res.data);
+      const res = await publicRequest.get(`/donors/${id}`);
+      setDonorData(res.data);
+      setDonations([res.data]); // if you have multiple donations, adjust here
     } catch (error) {
       console.error('Failed to fetch donor data:', error);
     } finally {

@@ -46,7 +46,7 @@ const Menu = () => {
       items: [
         { path: "/admin/donors", icon: FaTint, label: "Donors", primary: true },
         { path: "/admin/prospects", icon: FaUsers, label: "Prospects", primary: true },
-        { path: "/admin/requests", icon: FaHeartbeat, label: "Blood Requests", primary: true },
+        { path: "/admin/bloodrequests", icon: FaHeartbeat, label: "Blood Requests", primary: true },
         { path: "/orders", icon: FaClipboardList, label: "Orders" }
       ]
     },

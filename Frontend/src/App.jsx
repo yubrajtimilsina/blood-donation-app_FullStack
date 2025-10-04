@@ -10,6 +10,8 @@ import Prospect from './pages/Prospect';
 import Donor from './pages/Donor';
 import NewDonor from './pages/NewDonor';
 import { useSelector } from 'react-redux';
+import BloodRequests from './pages/BloodRequest';
+import DonorPortal from './pages/DonorPortal';
 
 function App() {
    const user = useSelector((state) => state.user);
@@ -34,6 +36,7 @@ function App() {
       path: "/login",
       element: <Login />,
     },
+    
     {
       path: "/admin",
       element: user.currentUser ? <Layout /> : <Navigate to="/login" />,
@@ -62,6 +65,13 @@ function App() {
           path: "/admin/donor/:id",
           element: <Donor />,
         },
+        { path: "/admin/donor-portal/:id",
+           element: <DonorPortal /> 
+          },
+        {
+          path: "/admin/bloodRequests",
+          element: <BloodRequests />,
+        }
       ]
     },
   ]);
