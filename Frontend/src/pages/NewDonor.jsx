@@ -17,9 +17,7 @@ const NewDonor = () => {
 
   const handleDonors = async () => {
     try {
-      await publicRequest.post("/donors", inputs, {
-        headers: { token: `Bearer ${user.currentUser.accessToken}` },
-      });
+      await publicRequest.post("/donors", inputs);
       toast.success("✅ Donor has been successfully added!");
       setInputs({});
     } catch (error) {

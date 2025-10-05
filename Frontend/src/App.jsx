@@ -33,6 +33,10 @@ function App() {
       element: <Home />,
     },
     {
+      path: "/register-donor",
+      element: <NewDonor />,
+    },
+    {
       path: "/login",
       element: <Login />,
     },

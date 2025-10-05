@@ -1,4 +1,5 @@
 import React from "react";
+import { Link as ScrollLink } from "react-scroll";
 
 const Hero = () => {
   return (
@@ -23,9 +24,9 @@ const Hero = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 w-full sm:w-auto">
-            <button className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg shadow-lg text-white font-medium transition duration-300 text-center">
+            <ScrollLink to="contact" smooth={true} duration={600} offset={-80} className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg shadow-lg text-white font-medium transition duration-300 text-center cursor-pointer">
               Donate Now
-            </button>
+            </ScrollLink>
             <a
               href="tel:+977987635433"
               className="bg-gray-700 hover:bg-gray-800 px-6 py-3 rounded-lg shadow-lg text-white font-medium transition duration-300 flex items-center justify-center text-center"

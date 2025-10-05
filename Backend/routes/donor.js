@@ -10,16 +10,17 @@ router.post('/', createDonor);  // REMOVED verifyToken
 //Get All Donors
 router.get('/', getAlldonors);
 
-//Get One Donor
+//Get Donor Statistics (place BEFORE param routes to avoid conflicts)
+router.get('/stats', getDonorsStats);
+
+//Get One Donor (support both /find/:id and /:id)
 router.get('/find/:id', getOneDonor);
+router.get('/:id', getOneDonor);
 
 //Update Donor - Add verifyToken for security
 router.put('/:id', verifyToken, updateDonor);
 
 //Delete Donor - Add verifyToken for security
 router.delete('/:id', verifyToken, deleteDonor);
-
-//Get Donor Statistics
-router.get('/stats', getDonorsStats);
 
 module.exports = router;
