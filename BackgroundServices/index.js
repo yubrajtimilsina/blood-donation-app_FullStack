@@ -12,8 +12,8 @@ const sendDonorDetailsEmail = require('./EmailServices/sendDonorDetailsEmail');
 
 dotenv.config();
 
-//Server Port
-const PORT = process.env.PORT
+// Server Port
+const PORT = process.env.PORT || 3001
 
 //Schedule Task
 // REPLACE the run function:

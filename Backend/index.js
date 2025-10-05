@@ -5,9 +5,8 @@ const dbConnection = require('./utils/db');
 
 dotenv.config();
 
-//Port from .env
-
-const PORT = process.env.PORT
+// Port from env with fallback
+const PORT = process.env.PORT || 3000
 
 
 //Server setup

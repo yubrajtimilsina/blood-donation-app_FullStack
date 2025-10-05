@@ -6,10 +6,13 @@ const prospectRoute = require('./routes/prospect');
 const bloodRequestRoute = require('./routes/bloodRequest');
 
 const cors = require('cors');
+const dotenv = require('dotenv');
+dotenv.config();
 
 
-//CORS
-app.use(cors());
+// CORS - allow configured frontend origin
+const allowedOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+app.use(cors({ origin: allowedOrigin, credentials: true }));
 
 //JSON
 app.use(express.json());
