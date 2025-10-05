@@ -13,6 +13,7 @@ const Admin = () => {
   const [donors, setDonors] = useState([]);
   const [prospects, setProspects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [monthly, setMonthly] = useState([]);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -23,10 +24,12 @@ const Admin = () => {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-      const [statsRes, donorsRes, prospectsRes] = await Promise.all([
+      const [statsRes, donorsRes, prospectsRes, donorsMonthlyRes, prospectsMonthlyRes] = await Promise.all([
         publicRequest.get("/donors/stats"),
         publicRequest.get("/donors"),
-        publicRequest.get("/prospects")
+        publicRequest.get("/prospects"),
+        publicRequest.get("/donors/monthly?months=6"),
+        publicRequest.get("/prospects/monthly?months=6")
       ]);
 
       // Transform blood group stats for pie chart
@@ -40,6 +43,22 @@ const Admin = () => {
       setBloodGroupData(transformedData);
       setDonors(donorsRes.data);
       setProspects(prospectsRes.data);
+      // Build monthly data combining donors and prospects by month
+      const monthsMap = new Map();
+      donorsMonthlyRes.data.forEach(item => {
+        const key = `${item._id.year}-${item._id.month}`;
+        const month = new Date(item._id.year, item._id.month - 1, 1).toLocaleString('en-US', { month: 'short' });
+        monthsMap.set(key, { month, donations: item.donations, prospects: 0 });
+      });
+      prospectsMonthlyRes.data.forEach(item => {
+        const key = `${item._id.year}-${item._id.month}`;
+        const month = new Date(item._id.year, item._id.month - 1, 1).toLocaleString('en-US', { month: 'short' });
+        const existing = monthsMap.get(key) || { month, donations: 0, prospects: 0 };
+        existing.prospects = item.prospects;
+        monthsMap.set(key, existing);
+      });
+      const mergedMonthly = Array.from(monthsMap.values());
+      setMonthly(mergedMonthly);
     } catch (error) {
       console.log(error);
     } finally {
@@ -52,14 +71,7 @@ const Admin = () => {
     navigate("/login");
   };
 
-  const monthlyData = [
-    { month: 'Jan', donations: 45, prospects: 28 },
-    { month: 'Feb', donations: 52, prospects: 35 },
-    { month: 'Mar', donations: 48, prospects: 42 },
-    { month: 'Apr', donations: 61, prospects: 38 },
-    { month: 'May', donations: 55, prospects: 45 },
-    { month: 'Jun', donations: 67, prospects: 52 }
-  ];
+  const monthlyData = monthly;
 
   if (loading) {
     return (
@@ -294,7 +306,7 @@ const Admin = () => {
                         {donor.name}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {donor.bloodGroup} • {donor.date || 'Recent'}
+                        {donor.bloodgroup} • {donor.date || 'Recent'}
                       </p>
                     </div>
                   </div>

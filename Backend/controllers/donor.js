@@ -150,11 +150,37 @@ const getDonorsStats = async (req, res) => {
   }
 };
 
+// Monthly donations (based on createdAt)
+const getDonorsMonthly = async (req, res) => {
+  try {
+    const months = parseInt(req.query.months || '6');
+    const fromDate = new Date();
+    fromDate.setMonth(fromDate.getMonth() - (months - 1));
+    fromDate.setHours(0, 0, 0, 0);
+
+    const stats = await Donor.aggregate([
+      { $match: { createdAt: { $gte: fromDate } } },
+      {
+        $group: {
+          _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+          donations: { $sum: 1 }
+        }
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1 } }
+    ]);
+
+    res.status(200).json(stats);
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to fetch monthly donor stats", error: error.message });
+  }
+};
+
 module.exports = {
     createDonor,
     getAlldonors,
     getOneDonor,
     updateDonor,
     deleteDonor,
-    getDonorsStats
+    getDonorsStats,
+    getDonorsMonthly
 };

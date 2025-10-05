@@ -1,6 +1,6 @@
 // Backend/routes/donor.js - REPLACE ENTIRE CONTENT
 const express = require('express');
-const { createDonor, getAlldonors, updateDonor, getOneDonor, deleteDonor, getDonorsStats } = require('../controllers/donor');
+const { createDonor, getAlldonors, updateDonor, getOneDonor, deleteDonor, getDonorsStats, getDonorsMonthly } = require('../controllers/donor');
 const { verifyToken } = require('../middlewares/verifyToken');
 const router = express.Router();
 
@@ -12,6 +12,7 @@ router.get('/', getAlldonors);
 
 //Get Donor Statistics (place BEFORE param routes to avoid conflicts)
 router.get('/stats', getDonorsStats);
+router.get('/monthly', getDonorsMonthly);
 
 //Get One Donor (support both /find/:id and /:id)
 router.get('/find/:id', getOneDonor);
