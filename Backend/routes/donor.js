@@ -1,27 +1,49 @@
-// Backend/routes/donor.js - REPLACE ENTIRE CONTENT
 const express = require('express');
-const { createDonor, getAlldonors, updateDonor, getOneDonor, deleteDonor, getDonorsStats, getDonorsMonthly } = require('../controllers/donor');
+const { 
+    createDonor, 
+    getAlldonors, 
+    updateDonor, 
+    getOneDonor, 
+    deleteDonor, 
+    getDonorsStats, 
+    getDonorsMonthly,
+    toggleAvailability,
+    searchNearbyDonors,
+    recordDonation,
+    getDonationHistory
+} = require('../controllers/donor');
 const { verifyToken } = require('../middlewares/verifyToken');
+const { checkRole } = require('../middlewares/roleCheck');
 const router = express.Router();
 
-//Add Donor - Remove verifyToken for prospect approval
-router.post('/', createDonor);  // REMOVED verifyToken
+// Public routes
+router.get('/search/nearby', searchNearbyDonors);
 
-//Get All Donors
+// Add Donor (no token for prospect approval)
+router.post('/', createDonor);
+
+// Get All Donors
 router.get('/', getAlldonors);
 
-//Get Donor Statistics (place BEFORE param routes to avoid conflicts)
+// Get Donor Statistics
 router.get('/stats', getDonorsStats);
 router.get('/monthly', getDonorsMonthly);
 
-//Get One Donor (support both /find/:id and /:id)
+// Donation history
+router.get('/:donorId/history', verifyToken, getDonationHistory);
+router.post('/:donorId/record-donation', verifyToken, checkRole('admin', 'donor'), recordDonation);
+
+// Availability toggle
+router.put('/:id/availability', verifyToken, checkRole('donor', 'admin'), toggleAvailability);
+
+// Get One Donor
 router.get('/find/:id', getOneDonor);
 router.get('/:id', getOneDonor);
 
-//Update Donor - Add verifyToken for security
+// Update Donor
 router.put('/:id', verifyToken, updateDonor);
 
-//Delete Donor - Add verifyToken for security
-router.delete('/:id', verifyToken, deleteDonor);
+// Delete Donor
+router.delete('/:id', verifyToken, checkRole('admin'), deleteDonor);
 
 module.exports = router;

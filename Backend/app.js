@@ -4,6 +4,10 @@ const authRoute = require('./routes/auth');
 const donorRoute = require('./routes/donor');
 const prospectRoute = require('./routes/prospect');
 const bloodRequestRoute = require('./routes/bloodRequest');
+const recipientRoute = require('./routes/recipient');
+const notificationRoute = require('./routes/notification');
+const adminRoute = require('./routes/admin');
+
 
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -22,5 +26,21 @@ app.use("/api/v1/auth",    authRoute);
 app.use("/api/v1/donors",  donorRoute);
 app.use("/api/v1/prospects", prospectRoute);
 app.use("/api/v1/bloodRequests", bloodRequestRoute);
+app.use("/api/v1/recipients", recipientRoute);
+app.use("/api/v1/notifications", notificationRoute);
+app.use("/api/v1/admin", adminRoute);
+
+
+// Health check
+app.get('/api/v1/health', (req, res) => {
+    res.json({ status: 'OK', message: 'Blood Donation API is running' });
+});
+
+app.use((req, res) => {
+    res.status(404).json({ 
+        success: false, 
+        message: 'Route not found' 
+    });
+});
 
 module.exports = app;
