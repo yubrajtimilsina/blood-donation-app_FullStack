@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const BloodRequestSchema = mongoose.Schema({
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     patientName: {
         type: String,
         required: true
@@ -34,6 +38,17 @@ const BloodRequestSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: 'Point'
+        },
+        coordinates: {
+            type: [Number], // [longitude, latitude]
+            default: [0, 0]
+        }
+    },
     requiredBy: {
         type: Date,
         required: true
@@ -43,11 +58,21 @@ const BloodRequestSchema = mongoose.Schema({
         enum: ['pending', 'fulfilled', 'cancelled'],
         default: 'pending'
     },
+    fulfilledBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Donor'
+    },
+    fulfilledAt: {
+        type: Date
+    },
     description: {
         type: String
     }
 }, {
     timestamps: true
 });
+
+// Index for geospatial queries
+BloodRequestSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('BloodRequest', BloodRequestSchema);
