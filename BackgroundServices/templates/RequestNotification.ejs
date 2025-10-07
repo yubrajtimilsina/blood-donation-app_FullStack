@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Urgent Blood Request</title>
+  <style type="text/css">
+    body {
+      margin: 0;
+      padding: 0;
+      min-width: 100%;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #222222;
+      background-color: #f4f4f4;
+    }
+    .email-wrapper {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .email-header {
+      background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+      padding: 30px;
+      text-align: center;
+      color: #fff;
+    }
+    .email-header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+    .urgency-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      margin-top: 10px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .email-body {
+      padding: 30px;
+    }
+    .alert-box {
+      background-color: #FEE2E2;
+      border-left: 4px solid #DC2626;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+    .detail-row {
+      display: flex;
+      padding: 12px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .detail-label {
+      font-weight: bold;
+      color: #4B5563;
+      min-width: 140px;
+    }
+    .detail-value {
+      color: #1F2937;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+      color: white;
+      padding: 15px 40px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .email-footer {
+      background-color: #F9FAFB;
+      padding: 20px;
+      text-align: center;
+      color: #6B7280;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="email-header">
+      <h1>🩸 URGENT BLOOD REQUEST</h1>
+      <div class="urgency-badge"><%= urgency %> PRIORITY</div>
+    </div>
+
+    <div class="email-body">
+      <p>Dear <%= donorName %>,</p>
+      
+      <p>We have an urgent blood donation request that matches your blood type. Your help could save a life!</p>
+
+      <div class="alert-box">
+        <h3 style="margin-top: 0; color: #DC2626;">⚠️ Immediate Action Required</h3>
+        <p style="margin: 0;">A patient is in need of <strong><%= bloodGroup %></strong> blood donation.</p>
+      </div>
+
+      <h3>Request Details:</h3>
+      
+      <div class="detail-row">
+        <span class="detail-label">Patient Name:</span>
+        <span class="detail-value"><%= patientName %></span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">Blood Group:</span>
+        <span class="detail-value" style="color: #DC2626; font-weight: bold;"><%= bloodGroup %></span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">Units Needed:</span>
+        <span class="detail-value"><%= unitsNeeded %> unit(s)</span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">Hospital:</span>
+        <span class="detail-value"><%= hospitalName %></span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">Location:</span>
+        <span class="detail-value"><%= address %></span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">Contact:</span>
+        <span class="detail-value"><%= contactNumber %></span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">Required By:</span>
+        <span class="detail-value"><%= requiredBy %></span>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="tel:<%= contactNumber %>" class="cta-button">
+          📞 Call Hospital Now
+        </a>
+      </div>
+
+      <p style="color: #DC2626; font-weight: bold; text-align: center;">
+        Every minute counts! Please respond as soon as possible.
+      </p>
+
+      <p style="font-size: 14px; color: #6B7280;">
+        If you are unable to donate, please consider sharing this request with friends and family who might be able to help.
+      </p>
+    </div>
+
+    <div class="email-footer">
+      <p><strong>LifeLink Blood Donation System</strong></p>
+      <p>This is an automated notification. Please do not reply to this email.</p>
+      <p>If you wish to update your availability status, please log in to your account.</p>
+    </div>
+  </div>
+</body>
+</html>
