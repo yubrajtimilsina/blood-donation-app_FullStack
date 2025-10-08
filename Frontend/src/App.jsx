@@ -1,67 +1,60 @@
-import { RouterProvider, createBrowserRouter, Outlet, Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { RouterProvider, createBrowserRouter, Outlet, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
-// Common Pages
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-
-// Admin Pages
-import Admin from "./pages/Admin";
-import Prospects from "./pages/Prospects";
-import Donors from "./pages/Donors";
-import Prospect from "./pages/Prospect";
-import Donor from "./pages/Donor";
-import NewDonor from "./pages/NewDonor";
-import BloodRequests from "./pages/BloodRequest";
-import DonorPortal from "./pages/DonorPortal";
-
-// Donor Pages
-import DonorDashboard from "./pages/DonorDashboard";
-import Notifications from "./pages/Notifications";
-
-// Recipient Pages
-import RecipientDashboard from "./pages/RecipientDashboard";
-import SearchDonors from "./pages/SearchDonors";
+// Pages
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Admin from './pages/Admin';
+import Prospects from './pages/Prospects';
+import Donors from './pages/Donors';
+import Prospect from './pages/Prospect';
+import Donor from './pages/Donor';
+import NewDonor from './pages/NewDonor';
+import BloodRequests from './pages/BloodRequest';
+import DonorPortal from './pages/DonorPortal';
+import DonorDashboard from './pages/DonorDashboard';
+import RecipientDashboard from './pages/RecipientDashboard';
+import SearchDonors from './pages/SearchDonors';
+import Notifications from './pages/Notifications';
+import DonorProfile from './pages/DonorProfile';
+import RecipientProfile from './pages/RecipientProfile';
+import MyRequests from './pages/MyRequests';
+import NearbyRequests from './pages/NearbyRequests';
+import AdminUsers from './pages/AdminUsers';
 
 // Components
-import Menu from "./components/Menu";
+import Menu from './components/Menu';
+import DonorNavbar from './components/DonorNavbar';
+import RecipientNavbar from './components/RecipientNavbar';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   const user = useSelector((state) => state.user.currentUser);
 
-  // ✅ Layouts
   const AdminLayout = () => (
-    <div className="flex min-h-screen">
+    <div className='flex'>
       <Menu />
-      <div className="flex-1 bg-gray-50 p-4">
+      <div className='flex-1'>
         <Outlet />
       </div>
     </div>
   );
 
   const DonorLayout = () => (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className='min-h-screen'>
+      <DonorNavbar />
       <Outlet />
     </div>
   );
 
   const RecipientLayout = () => (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className='min-h-screen'>
+      <RecipientNavbar />
       <Outlet />
     </div>
   );
 
-  // ✅ Protected route based on user role
-  const ProtectedRoute = ({ children, allowedRoles }) => {
-    if (!user) return <Navigate to="/login" />;
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
-      return <Navigate to="/" />;
-    }
-    return children;
-  };
-
-  // ✅ Main Router
   const router = createBrowserRouter([
     {
       path: "/",
@@ -69,32 +62,28 @@ function App() {
     },
     {
       path: "/register",
-      element: <Register />,
+      element: user ? <Navigate to={
+        user.role === 'admin' ? '/admin' :
+        user.role === 'donor' ? '/donor/dashboard' :
+        '/recipient/dashboard'
+      } /> : <Register />,
     },
     {
       path: "/login",
-      element: user ? (
-        <Navigate
-          to={
-            user.role === "admin"
-              ? "/admin"
-              : user.role === "donor"
-              ? "/donor/dashboard"
-              : "/recipient/dashboard"
-          }
-        />
-      ) : (
-        <Login />
-      ),
+      element: user ? <Navigate to={
+        user.role === 'admin' ? '/admin' :
+        user.role === 'donor' ? '/donor/dashboard' :
+        '/recipient/dashboard'
+      } /> : <Login />,
     },
 
-    // 🧑‍💼 Admin Routes
+    // Admin Routes
     {
       path: "/admin",
       element: (
-        <ProtectedRoute allowedRoles={["admin"]}>
+        <PrivateRoute allowedRoles={['admin']}>
           <AdminLayout />
-        </ProtectedRoute>
+        </PrivateRoute>
       ),
       children: [
         { path: "", element: <Admin /> },
@@ -105,39 +94,42 @@ function App() {
         { path: "donor/:id", element: <Donor /> },
         { path: "donor-portal/:id", element: <DonorPortal /> },
         { path: "bloodRequests", element: <BloodRequests /> },
-      ],
+        { path: "users", element: <AdminUsers /> },
+      ]
     },
 
-    // 🩸 Donor Routes
+    // Donor Routes
     {
       path: "/donor",
       element: (
-        <ProtectedRoute allowedRoles={["donor"]}>
+        <PrivateRoute allowedRoles={['donor']}>
           <DonorLayout />
-        </ProtectedRoute>
+        </PrivateRoute>
       ),
       children: [
         { path: "dashboard", element: <DonorDashboard /> },
         { path: "notifications", element: <Notifications /> },
-        { path: "portal/:id", element: <DonorPortal /> },
-        { path: "requests", element: <BloodRequests /> },
-      ],
+        { path: "nearby-requests", element: <NearbyRequests /> },
+        { path: "profile", element: <DonorProfile /> },
+      ]
     },
 
-    // ❤️ Recipient Routes
+    // Recipient Routes
     {
       path: "/recipient",
       element: (
-        <ProtectedRoute allowedRoles={["recipient"]}>
+        <PrivateRoute allowedRoles={['recipient']}>
           <RecipientLayout />
-        </ProtectedRoute>
+        </PrivateRoute>
       ),
       children: [
         { path: "dashboard", element: <RecipientDashboard /> },
         { path: "create-request", element: <BloodRequests /> },
         { path: "search-donors", element: <SearchDonors /> },
         { path: "notifications", element: <Notifications /> },
-      ],
+        { path: "profile", element: <RecipientProfile /> },
+        { path: "my-requests", element: <MyRequests /> },
+      ]
     },
   ]);
 
