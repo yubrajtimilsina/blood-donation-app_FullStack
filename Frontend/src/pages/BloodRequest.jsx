@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { publicRequest } from '../requestMethods';
+import { publicRequest, userRequest } from '../requestMethods';
 import { FaHeartbeat, FaPlus, FaExclamationCircle } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 
@@ -35,7 +35,7 @@ const BloodRequests = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await publicRequest.post('/bloodrequests', formData);
+      await userRequest.post('/bloodrequests', formData);
       toast.success('Blood request created successfully!');
       setShowForm(false);
       setFormData({

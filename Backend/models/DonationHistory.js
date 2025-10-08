@@ -10,11 +10,6 @@ const DonationHistorySchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'BloodRequest'
   },
-  donationDate: {
-    type: Date,
-    required: true,
-    default: Date.now
-  },
   bloodGroup: {
     type: String,
     required: true
@@ -24,36 +19,25 @@ const DonationHistorySchema = mongoose.Schema({
     default: 1
   },
   location: {
-    hospitalName: String,
-    address: String
+    type: String
   },
-  recipientName: String,
+  recipientName: {
+    type: String
+  },
+  notes: {
+    type: String
+  },
   status: {
     type: String,
-    enum: ['completed', 'scheduled', 'cancelled'],
+    enum: ['completed', 'pending', 'cancelled'],
     default: 'completed'
   },
-  notes: String,
-  certificateIssued: {
-    type: Boolean,
-    default: false
-  },
-  certificateUrl: String,
-  nextEligibleDate: {
-    type: Date
+  donationDate: {
+    type: Date,
+    default: Date.now
   }
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
-// Calculate next eligible date (90 days after donation)
-DonationHistorySchema.pre('save', function(next) {
-  if (this.isNew && this.status === 'completed') {
-    const nextDate = new Date(this.donationDate);
-    nextDate.setDate(nextDate.getDate() + 90);
-    this.nextEligibleDate = nextDate;
-  }
-  next();
-});
+const DonationHistory = mongoose.model('DonationHistory', DonationHistorySchema);
 
-module.exports = mongoose.model('DonationHistory', DonationHistorySchema);
+module.exports = DonationHistory;

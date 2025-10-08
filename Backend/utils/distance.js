@@ -22,30 +22,29 @@ const calculateDistance = (coord1, coord2) => {
     return degrees * (Math.PI / 180);
   };
   
-  // Find nearby items within radius
-  const findNearby = async (Model, coordinates, radiusKm = 10, additionalFilters = {}) => {
-    try {
-      const results = await Model.find({
-        location: {
-          $near: {
-            $geometry: {
-              type: 'Point',
-              coordinates: coordinates
-            },
-            $maxDistance: radiusKm * 1000 // Convert km to meters
-          }
-        },
-        ...additionalFilters
-      });
-      
-      return results;
-    } catch (error) {
-      console.error('Error finding nearby items:', error);
-      return [];
-    }
-  };
-  
-  module.exports = {
+  // Utility to perform nearby search using MongoDB $geoNear
+  // Model must have a 2dsphere index on 'location'
+
+async function findNearby(Model, coordinates, radiusKm, filter = {}) {
+  // radiusKm to meters
+  const maxDistance = Math.max(1, radiusKm) * 1000;
+  const pipeline = [
+    {
+      $geoNear: {
+        near: { type: 'Point', coordinates },
+        distanceField: 'distance',
+        maxDistance,
+        spherical: true,
+        query: filter
+      }
+    },
+    { $sort: { distance: 1 } }
+  ];
+  const results = await Model.aggregate(pipeline);
+  return results;
+}
+
+module.exports = {
     calculateDistance,
     findNearby
   };
