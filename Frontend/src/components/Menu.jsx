@@ -1,37 +1,47 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-
 import {
-  FaBox,
-  FaCalendarAlt,
-  FaChartBar,
-  FaClipboard,
-  FaClipboardList,
-  FaCog,
-  FaElementor,
-  FaHdd,
   FaHome,
-  FaUser,
+  FaTint,
   FaUsers,
   FaBars,
   FaTimes,
   FaSignOutAlt,
-  FaTint,
-  FaHeartbeat
+  FaHeartbeat,
+  FaUserShield,
+  FaChevronDown,
+  FaChevronUp
 } from "react-icons/fa";
-
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../redux/userRedux";
 
 const Menu = () => {
   const [activeLink, setActiveLink] = useState("/admin");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({});
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleLinkClick = (link) => {
     setActiveLink(link);
-    setIsMobileMenuOpen(false); // Close mobile menu when link is clicked
+    setIsMobileMenuOpen(false);
   };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
   };
 
   const menuItems = [
@@ -47,23 +57,12 @@ const Menu = () => {
         { path: "/admin/donors", icon: FaTint, label: "Donors", primary: true },
         { path: "/admin/prospects", icon: FaUsers, label: "Prospects", primary: true },
         { path: "/admin/bloodrequests", icon: FaHeartbeat, label: "Blood Requests", primary: true },
-        { path: "/orders", icon: FaClipboardList, label: "Orders" }
       ]
     },
     {
       section: "System",
       items: [
-        { path: "/elements", icon: FaElementor, label: "Elements" },
-        { path: "/settings", icon: FaCog, label: "Settings" },
-        { path: "/backups", icon: FaHdd, label: "Backups" }
-      ]
-    },
-    {
-      section: "Analytics",
-      items: [
-        { path: "/charts", icon: FaChartBar, label: "Charts" },
-        { path: "/logs", icon: FaClipboard, label: "Activity Logs" },
-        { path: "/calendar", icon: FaCalendarAlt, label: "Calendar" }
+        { path: "/admin/users", icon: FaUserShield, label: "Users", primary: true }
       ]
     }
   ];
@@ -80,18 +79,17 @@ const Menu = () => {
       >
         <li
           className={`
-            flex items-center px-4 py-3 mb-2 rounded-lg cursor-pointer
+            flex items-center px-4 py-3 rounded-lg cursor-pointer
             transition-all duration-300 ease-in-out group
             ${isActive 
-              ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg transform scale-105' 
-              : 'text-gray-700 hover:bg-red-50 hover:text-red-600 hover:shadow-md hover:transform hover:translate-x-2'
+              ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg' 
+              : 'text-gray-700 hover:bg-red-50 hover:text-red-600 hover:shadow-md'
             }
-            ${isPrimary && !isActive ? 'border-l-4 border-red-200' : ''}
           `}
         >
           <Icon
             className={`
-              mr-4 text-lg transition-colors duration-300
+              mr-3 text-lg transition-colors duration-300
               ${isActive ? 'text-white' : 'text-red-500 group-hover:text-red-600'}
             `}
           />
@@ -128,34 +126,37 @@ const Menu = () => {
           fixed lg:sticky top-0 left-0 h-screen bg-white shadow-2xl z-50
           transition-transform duration-300 ease-in-out
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          w-80 lg:w-72 xl:w-80
+          w-72 lg:w-64 xl:w-72
         `}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-red-500 to-red-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-red-500 to-red-600 p-4 lg:p-6 text-white">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0">
               <FaTint className="text-white text-lg" />
             </div>
-            <div>
-              <h2 className="text-xl font-bold">LifeLink</h2>
-              <p className="text-red-100 text-sm">Admin Portal</p>
+            <div className="min-w-0">
+              <h2 className="text-lg lg:text-xl font-bold truncate">LifeLink</h2>
+              <p className="text-red-100 text-xs lg:text-sm truncate">Admin Portal</p>
             </div>
-          </div>
-          <div className="text-red-100 text-xs">
-            Managing life-saving connections
           </div>
         </div>
 
         {/* Menu Content */}
-        <div className="flex-1 overflow-y-auto p-4 h-full pb-20">
+        <div className="flex-1 overflow-y-auto p-3 lg:p-4 h-[calc(100vh-180px)]">
           <nav>
             {menuItems.map((section, sectionIndex) => (
-              <div key={sectionIndex} className="mb-6">
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2">
-                  {section.section}
-                </h3>
-                <ul>
+              <div key={sectionIndex} className="mb-4">
+                <button
+                  onClick={() => toggleSection(section.section)}
+                  className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2 py-1 hover:text-gray-600 transition-colors lg:cursor-default"
+                >
+                  <span>{section.section}</span>
+                  <span className="lg:hidden">
+                    {expandedSections[section.section] ? <FaChevronUp /> : <FaChevronDown />}
+                  </span>
+                </button>
+                <ul className={`space-y-1 ${!expandedSections[section.section] && 'hidden lg:block'}`}>
                   {section.items.map((item, itemIndex) => (
                     <MenuItem
                       key={itemIndex}
@@ -165,7 +166,7 @@ const Menu = () => {
                   ))}
                 </ul>
                 {sectionIndex < menuItems.length - 1 && (
-                  <hr className="my-4 border-gray-200" />
+                  <hr className="my-3 border-gray-200" />
                 )}
               </div>
             ))}
@@ -173,15 +174,14 @@ const Menu = () => {
         </div>
 
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 border-t">
-          <Link
-            to="/logout"
-            onClick={() => handleLinkClick("/logout")}
-            className="flex items-center px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300 w-full"
+        <div className="absolute bottom-0 left-0 right-0 p-3 lg:p-4 bg-gray-50 border-t">
+          <button
+            onClick={handleLogout}
+            className="flex items-center justify-center w-full px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300 font-medium"
           >
-            <FaSignOutAlt className="mr-4 text-red-500" />
-            <span className="font-medium">Sign Out</span>
-          </Link>
+            <FaSignOutAlt className="mr-3 text-red-500" />
+            <span>Sign Out</span>
+          </button>
         </div>
       </aside>
     </>

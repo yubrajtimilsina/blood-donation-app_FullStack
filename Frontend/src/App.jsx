@@ -1,5 +1,6 @@
 import { RouterProvider, createBrowserRouter, Outlet, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import ScrollToTop from './components/ScrollToTop';
 
 // Pages
 import Home from './pages/Home';
@@ -34,6 +35,7 @@ function App() {
 
   const AdminLayout = () => (
     <div className='flex'>
+      <ScrollToTop />
       <Menu />
       <div className='flex-1'>
         <Outlet />
@@ -43,6 +45,7 @@ function App() {
 
   const DonorLayout = () => (
     <div className='min-h-screen'>
+      <ScrollToTop />
       <DonorNavbar />
       <Outlet />
     </div>
@@ -50,6 +53,7 @@ function App() {
 
   const RecipientLayout = () => (
     <div className='min-h-screen'>
+      <ScrollToTop />
       <RecipientNavbar />
       <Outlet />
     </div>
@@ -58,7 +62,7 @@ function App() {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Home />,
+      element: <><ScrollToTop /><Home /></>,
     },
     {
       path: "/register",
@@ -66,7 +70,7 @@ function App() {
         user.role === 'admin' ? '/admin' :
         user.role === 'donor' ? '/donor/dashboard' :
         '/recipient/dashboard'
-      } /> : <Register />,
+      } /> : <><ScrollToTop /><Register /></>,
     },
     {
       path: "/login",
@@ -74,7 +78,7 @@ function App() {
         user.role === 'admin' ? '/admin' :
         user.role === 'donor' ? '/donor/dashboard' :
         '/recipient/dashboard'
-      } /> : <Login />,
+      } /> : <><ScrollToTop /><Login /></>,
     },
 
     // Admin Routes
