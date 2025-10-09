@@ -1,22 +1,31 @@
 const router = require("express").Router();
-const { verifyToken, verifyRole } = require("../middleware/verifyToken");
+const { verifyToken } = require("../middlewares/verifyToken");
+const { checkRole } = require("../middlewares/roleCheck");
 const {
   getHospitalProfile,
   updateHospitalProfile,
   updateBloodInventory,
   getBloodInventory,
-  getAllHospitals
+  getAllHospitals,
+  getLocalDonors,
+  getHospitalRequests
 } = require("../controllers/hospital");
 
 // Hospital profile routes
-router.get("/profile", verifyToken, verifyRole(['hospital']), getHospitalProfile);
-router.put("/profile", verifyToken, verifyRole(['hospital']), updateHospitalProfile);
+router.get("/profile", verifyToken, checkRole('hospital'), getHospitalProfile);
+router.put("/profile", verifyToken, checkRole('hospital'), updateHospitalProfile);
 
 // Blood inventory routes
-router.get("/inventory", verifyToken, verifyRole(['hospital']), getBloodInventory);
-router.put("/inventory", verifyToken, verifyRole(['hospital']), updateBloodInventory);
+router.get("/inventory", verifyToken, checkRole('hospital'), getBloodInventory);
+router.put("/inventory", verifyToken, checkRole('hospital'), updateBloodInventory);
+
+// Hospital donors route
+router.get("/local-donors", verifyToken, checkRole('hospital'), getLocalDonors);
+
+// Hospital requests route
+router.get("/requests", verifyToken, checkRole('hospital'), getHospitalRequests);
 
 // Admin routes
-router.get("/all", verifyToken, verifyRole(['admin']), getAllHospitals);
+router.get("/all", verifyToken, checkRole('admin'), getAllHospitals);
 
 module.exports = router;

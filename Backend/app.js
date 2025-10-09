@@ -6,6 +6,8 @@ const prospectRoute = require('./routes/prospect');
 const bloodRequestRoute = require('./routes/bloodRequest');
 const recipientRoute = require('./routes/recipient');
 const hospitalRoute = require('./routes/hospital');
+const adminRoute = require('./routes/admin');
+const notificationRoute = require('./routes/notification');
 
 
 
@@ -28,6 +30,8 @@ app.use("/api/v1/prospects", prospectRoute);
 app.use("/api/v1/bloodRequests", bloodRequestRoute);
 app.use("/api/v1/recipients", recipientRoute);
 app.use("/api/v1/hospitals", hospitalRoute);
+app.use("/api/v1/admin", adminRoute);
+app.use("/api/v1/notifications", notificationRoute);
 
 
 // Health check

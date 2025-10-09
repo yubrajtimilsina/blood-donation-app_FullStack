@@ -25,6 +25,9 @@ import NearbyRequests from './pages/NearbyRequests';
 import AdminUsers from './pages/AdminUsers';
 import Hospital from './pages/Hospital';
 import HospitalProfile from './pages/HospitalProfile';
+import HospitalInventory from './pages/HospitalInventory';
+import HospitalRequests from './pages/HospitalRequests';
+import HospitalLocalDonors from './pages/HospitalLocalDonors';
 
 // Components
 import Menu from './components/Menu';
@@ -160,6 +163,9 @@ function App() {
       children: [
         { path: "dashboard", element: <Hospital /> },
         { path: "profile", element: <HospitalProfile /> },
+        { path: "inventory", element: <HospitalInventory /> },
+        { path: "requests", element: <HospitalRequests /> },
+        { path: "local-donors", element: <HospitalLocalDonors /> },
       ]
     },
   ]);

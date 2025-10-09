@@ -29,13 +29,17 @@ const Hospital = () => {
         publicRequest.get("/hospital/inventory", {
           headers: { token: `Bearer ${user.accessToken}` }
         }),
-        publicRequest.get("/donors"),
-        publicRequest.get("/bloodRequests")
+        publicRequest.get("/hospital/local-donors", {
+          headers: { token: `Bearer ${user.accessToken}` }
+        }),
+        publicRequest.get("/hospital/requests", {
+          headers: { token: `Bearer ${user.accessToken}` }
+        })
       ]);
 
       setBloodInventory(inventoryRes.data.data || {});
-      setDonors(donorsRes.data);
-      setRequests(requestsRes.data);
+      setDonors(donorsRes.data.data || []);
+      setRequests(requestsRes.data.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -155,7 +159,7 @@ const Hospital = () => {
                       {request.patientName || 'Patient'}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {request.bloodType} • {request.urgency} • {request.status}
+                      {request.bloodGroup} • {request.urgency} • {request.status}
                     </p>
                   </div>
                 </div>
