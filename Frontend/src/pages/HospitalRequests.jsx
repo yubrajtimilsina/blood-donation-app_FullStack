@@ -26,7 +26,7 @@ const HospitalRequests = () => {
 
   const fetchRequests = async () => {
     try {
-      const res = await publicRequest.get('/hospital/requests', {
+      const res = await publicRequest.get('/hospitals/requests', {
         headers: { token: `Bearer ${user.accessToken}` }
       });
       setRequests(res.data.data || []);

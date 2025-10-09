@@ -26,19 +26,19 @@ const Hospital = () => {
     try {
       setLoading(true);
       const [inventoryRes, donorsRes, requestsRes] = await Promise.all([
-        publicRequest.get("/hospital/inventory", {
+        publicRequest.get("/hospitals/inventory", {
           headers: { token: `Bearer ${user.accessToken}` }
         }),
-        publicRequest.get("/hospital/local-donors", {
+        publicRequest.get("/donors", {
           headers: { token: `Bearer ${user.accessToken}` }
         }),
-        publicRequest.get("/hospital/requests", {
+        publicRequest.get("/bloodRequests", {
           headers: { token: `Bearer ${user.accessToken}` }
         })
       ]);
 
       setBloodInventory(inventoryRes.data.data || {});
-      setDonors(donorsRes.data.data || []);
+      setDonors(donorsRes.data || []);
       setRequests(requestsRes.data.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);

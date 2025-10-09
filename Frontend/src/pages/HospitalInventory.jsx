@@ -27,7 +27,7 @@ const HospitalInventory = () => {
 
   const fetchInventory = async () => {
     try {
-      const res = await publicRequest.get('/hospital/inventory', {
+      const res = await publicRequest.get('/inventory', {
         headers: { token: `Bearer ${user.accessToken}` }
       });
       setInventory(res.data.data || inventory);

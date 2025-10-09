@@ -1,4 +1,5 @@
 const Hospital = require("../models/Hospital");
+const User = require("../models/User");
 
 // Get hospital profile by user ID
 const getHospitalProfile = async (req, res) => {
@@ -104,13 +105,36 @@ const updateBloodInventory = async (req, res) => {
 const getBloodInventory = async (req, res) => {
   try {
     const userId = req.user.id;
-    const hospital = await Hospital.findOne({ userId });
+    let hospital = await Hospital.findOne({ userId });
 
+    // If hospital profile doesn't exist, create a default one
     if (!hospital) {
-      return res.status(404).json({
-        success: false,
-        message: "Hospital profile not found",
+      hospital = new Hospital({
+        userId,
+        name: 'New Hospital',
+        email: req.user.email || '',
+        phone: '000-000-0000',
+        address: 'Address not set',
+        licenseNumber: 'TEMP-' + Date.now(),
+        bloodInventory: {
+          'A+': 0,
+          'A-': 0,
+          'B+': 0,
+          'B-': 0,
+          'AB+': 0,
+          'AB-': 0,
+          'O+': 0,
+          'O-': 0
+        },
+        location: {
+          type: 'Point',
+          coordinates: [0, 0]
+        }
       });
+      await hospital.save();
+
+      // Update user with hospital profile reference
+      await User.findByIdAndUpdate(userId, { hospitalProfile: hospital._id });
     }
 
     res.status(200).json({
@@ -156,10 +180,13 @@ const getLocalDonors = async (req, res) => {
 
     // Get hospital location
     const hospital = await Hospital.findOne({ userId });
-    if (!hospital || !hospital.location) {
-      return res.status(400).json({
-        success: false,
-        message: "Hospital location not found",
+
+    // If hospital profile doesn't exist or has no location, return empty array
+    if (!hospital || !hospital.location || hospital.location.coordinates[0] === 0) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        message: "Hospital location not set. Please update your hospital profile.",
       });
     }
 
@@ -201,7 +228,7 @@ const getHospitalRequests = async (req, res) => {
     const hospital = await Hospital.findOne({ userId });
     let requests;
 
-    if (hospital && hospital.location) {
+    if (hospital && hospital.location && hospital.location.coordinates[0] !== 0) {
       // Find requests within 50km of hospital
       requests = await BloodRequest.find({
         location: {

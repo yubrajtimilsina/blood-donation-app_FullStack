@@ -25,7 +25,7 @@ const HospitalLocalDonors = () => {
 
   const fetchLocalDonors = async () => {
     try {
-      const res = await publicRequest.get(`/hospital/local-donors?radius=${radius}`, {
+      const res = await publicRequest.get(`/hospitals/local-donors?radius=${radius}`, {
         headers: { token: `Bearer ${user.accessToken}` }
       });
       setDonors(res.data.data || []);
