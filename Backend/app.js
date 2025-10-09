@@ -5,6 +5,7 @@ const donorRoute = require('./routes/donor');
 const prospectRoute = require('./routes/prospect');
 const bloodRequestRoute = require('./routes/bloodRequest');
 const recipientRoute = require('./routes/recipient');
+const hospitalRoute = require('./routes/hospital');
 
 
 
@@ -26,6 +27,7 @@ app.use("/api/v1/donors",  donorRoute);
 app.use("/api/v1/prospects", prospectRoute);
 app.use("/api/v1/bloodRequests", bloodRequestRoute);
 app.use("/api/v1/recipients", recipientRoute);
+app.use("/api/v1/hospitals", hospitalRoute);
 
 
 // Health check

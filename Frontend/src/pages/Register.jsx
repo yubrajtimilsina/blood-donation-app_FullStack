@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { publicRequest } from "../requestMethods";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaUser, FaEnvelope, FaLock, FaPhone, FaTint } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock, FaPhone, FaTint, FaCalendarAlt, FaVenusMars } from "react-icons/fa";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -13,7 +13,9 @@ const Register = () => {
     confirmPassword: "",
     phone: "",
     role: "donor",
-    bloodgroup: ""
+    bloodgroup: "",
+    gender: "",
+    dateOfBirth: ""
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -149,6 +151,45 @@ const Register = () => {
               </div>
             </div>
 
+            {/* Gender and Date of Birth */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Gender
+                </label>
+                <div className="relative">
+                  <FaVenusMars className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date of Birth
+                </label>
+                <div className="relative">
+                  <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Role Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -163,6 +204,7 @@ const Register = () => {
               >
                 <option value="donor">Blood Donor</option>
                 <option value="recipient">Blood Recipient</option>
+                <option value="hospital">Hospital</option>
               </select>
             </div>
 

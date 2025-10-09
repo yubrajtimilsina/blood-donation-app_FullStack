@@ -2,7 +2,8 @@
 export const ROLES = {
     ADMIN: 'admin',
     DONOR: 'donor',
-    RECIPIENT: 'recipient'
+    RECIPIENT: 'recipient',
+    HOSPITAL: 'hospital'
   };
   
   // Check if user has specific role
@@ -24,6 +25,8 @@ export const ROLES = {
         return '/donor/dashboard';
       case ROLES.RECIPIENT:
         return '/recipient/dashboard';
+      case ROLES.HOSPITAL:
+        return '/hospital/dashboard';
       default:
         return '/';
     }
@@ -38,6 +41,8 @@ export const ROLES = {
         return 'Blood Donor';
       case ROLES.RECIPIENT:
         return 'Blood Recipient';
+      case ROLES.HOSPITAL:
+        return 'Hospital';
       default:
         return 'User';
     }
@@ -52,6 +57,8 @@ export const ROLES = {
         return 'red';
       case ROLES.RECIPIENT:
         return 'blue';
+      case ROLES.HOSPITAL:
+        return 'green';
       default:
         return 'gray';
     }
@@ -70,6 +77,11 @@ export const ROLES = {
   // Check if user is recipient
   export const isRecipient = (user) => {
     return hasRole(user, ROLES.RECIPIENT);
+  };
+
+  // Check if user is hospital
+  export const isHospital = (user) => {
+    return hasRole(user, ROLES.HOSPITAL);
   };
   
   // Get available features based on role
@@ -100,9 +112,17 @@ export const ROLES = {
         'Contact Donors',
         'Profile Management',
         'Receive Notifications'
+      ],
+      [ROLES.HOSPITAL]: [
+        'Manage Blood Inventory',
+        'View Local Donors',
+        'Process Donations',
+        'Send Requests',
+        'Profile Management',
+        'Receive Notifications'
       ]
     };
-  
+
     return features[role] || [];
   };
   
@@ -141,9 +161,17 @@ export const ROLES = {
         { label: 'Search Donors', path: '/recipient/search-donors', icon: 'search' },
         { label: 'My Requests', path: '/recipient/my-requests', icon: 'list' },
         { label: 'Notifications', path: '/recipient/notifications', icon: 'bell' }
+      ],
+      [ROLES.HOSPITAL]: [
+        { label: 'Dashboard', path: '/hospital/dashboard', icon: 'dashboard' },
+        { label: 'Manage Inventory', path: '/hospital/inventory', icon: 'blood' },
+        { label: 'Local Donors', path: '/hospital/local-donors', icon: 'users' },
+        { label: 'Requests', path: '/hospital/requests', icon: 'request' },
+        { label: 'Profile', path: '/hospital/profile', icon: 'profile' },
+        { label: 'Notifications', path: '/hospital/notifications', icon: 'bell' }
       ]
     };
-  
+
     return navItems[role] || [];
   };
   
@@ -157,6 +185,7 @@ export const ROLES = {
     isAdmin,
     isDonor,
     isRecipient,
+    isHospital,
     getFeaturesByRole,
     canAccessRoute,
     formatUserNameWithRole,

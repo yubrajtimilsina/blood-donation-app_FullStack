@@ -23,11 +23,14 @@ import RecipientProfile from './pages/RecipientProfile';
 import MyRequests from './pages/MyRequests';
 import NearbyRequests from './pages/NearbyRequests';
 import AdminUsers from './pages/AdminUsers';
+import Hospital from './pages/Hospital';
+import HospitalProfile from './pages/HospitalProfile';
 
 // Components
 import Menu from './components/Menu';
 import DonorNavbar from './components/DonorNavbar';
 import RecipientNavbar from './components/RecipientNavbar';
+import HospitalNavbar from './components/HospitalNavbar';
 import PrivateRoute from './components/PrivateRoute';
 
 function App() {
@@ -59,6 +62,14 @@ function App() {
     </div>
   );
 
+  const HospitalLayout = () => (
+    <div className='min-h-screen'>
+      <ScrollToTop />
+      <HospitalNavbar />
+      <Outlet />
+    </div>
+  );
+
   const router = createBrowserRouter([
     {
       path: "/",
@@ -69,7 +80,8 @@ function App() {
       element: user ? <Navigate to={
         user.role === 'admin' ? '/admin' :
         user.role === 'donor' ? '/donor/dashboard' :
-        '/recipient/dashboard'
+        user.role === 'recipient' ? '/recipient/dashboard' :
+        '/hospital/dashboard'
       } /> : <><ScrollToTop /><Register /></>,
     },
     {
@@ -77,7 +89,8 @@ function App() {
       element: user ? <Navigate to={
         user.role === 'admin' ? '/admin' :
         user.role === 'donor' ? '/donor/dashboard' :
-        '/recipient/dashboard'
+        user.role === 'recipient' ? '/recipient/dashboard' :
+        '/hospital/dashboard'
       } /> : <><ScrollToTop /><Login /></>,
     },
 
@@ -133,6 +146,20 @@ function App() {
         { path: "notifications", element: <Notifications /> },
         { path: "profile", element: <RecipientProfile /> },
         { path: "my-requests", element: <MyRequests /> },
+      ]
+    },
+
+    // Hospital Routes
+    {
+      path: "/hospital",
+      element: (
+        <PrivateRoute allowedRoles={['hospital']}>
+          <HospitalLayout />
+        </PrivateRoute>
+      ),
+      children: [
+        { path: "dashboard", element: <Hospital /> },
+        { path: "profile", element: <HospitalProfile /> },
       ]
     },
   ]);

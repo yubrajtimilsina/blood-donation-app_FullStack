@@ -2,6 +2,7 @@ const CryptoJS = require("crypto-js");
 const User = require("../models/User");
 const Donor = require("../models/Donor");
 const Recipient = require("../models/Recipient");
+const Hospital = require("../models/Hospital");
 const jwt = require("jsonwebtoken"); 
 const dotenv = require("dotenv");
 
@@ -10,7 +11,7 @@ dotenv.config();
 // REGISTER
 const registerUser = async(req, res) => {
     try {
-        const { name, email, password, role, phone } = req.body;
+        const { name, email, password, role, phone, gender, dateOfBirth } = req.body;
 
         // Validate required fields
         if (!name || !email || !password) {
@@ -34,6 +35,8 @@ const registerUser = async(req, res) => {
             name,
             email,
             phone,
+            gender,
+            dateOfBirth,
             password: CryptoJS.AES.encrypt(password, process.env.PASS_SEC).toString(),
             role: role || 'donor' // default to donor
         });
@@ -65,6 +68,18 @@ const registerUser = async(req, res) => {
             });
             const savedRecipient = await recipientProfile.save();
             savedUser.recipientProfile = savedRecipient._id;
+            await savedUser.save();
+        } else if (savedUser.role === 'hospital') {
+            const hospitalProfile = new Hospital({
+                userId: savedUser._id,
+                name: req.body.hospitalName || savedUser.name,
+                email: savedUser.email,
+                phone: phone || '',
+                address: req.body.address || '',
+                licenseNumber: req.body.licenseNumber || ''
+            });
+            const savedHospital = await hospitalProfile.save();
+            savedUser.hospitalProfile = savedHospital._id;
             await savedUser.save();
         }
 
@@ -100,7 +115,8 @@ const loginUser = async(req, res) => {
 
         const user = await User.findOne({ email })
             .populate('donorProfile')
-            .populate('recipientProfile');
+            .populate('recipientProfile')
+            .populate('hospitalProfile');
 
         if (!user) {
             return res.status(401).json({
@@ -160,7 +176,8 @@ const getCurrentUser = async(req, res) => {
         const user = await User.findById(userId)
             .select('-password')
             .populate('donorProfile')
-            .populate('recipientProfile');
+            .populate('recipientProfile')
+            .populate('hospitalProfile');
 
         if (!user) {
             return res.status(404).json({

@@ -16,7 +16,7 @@ const userSchema = mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'donor', 'recipient'],
+    enum: ['admin', 'donor', 'recipient', 'hospital'],
     default: 'donor'
   },
   profileImage: {
@@ -25,6 +25,13 @@ const userSchema = mongoose.Schema({
   },
   phone: {
     type: String
+  },
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'other']
+  },
+  dateOfBirth: {
+    type: Date
   },
   verified: {
     type: Boolean,
@@ -45,6 +52,10 @@ const userSchema = mongoose.Schema({
   recipientProfile: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Recipient'
+  },
+  hospitalProfile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Hospital'
   }
 }, {
   timestamps: true

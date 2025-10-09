@@ -4,7 +4,8 @@ const mongoose = require('mongoose');
 const ROLES = {
     ADMIN: 'admin',
     DONOR: 'donor',
-    RECIPIENT: 'recipient'
+    RECIPIENT: 'recipient',
+    HOSPITAL: 'hospital'
   };
   
   const PERMISSIONS = {
@@ -21,7 +22,13 @@ const ROLES = {
     // Recipient permissions
     CREATE_REQUEST: ['recipient', 'admin'],
     VIEW_DONORS: ['recipient', 'admin'],
-    CONTACT_DONORS: ['recipient', 'admin']
+    CONTACT_DONORS: ['recipient', 'admin'],
+
+    // Hospital permissions
+    MANAGE_INVENTORY: ['hospital', 'admin'],
+    VIEW_LOCAL_DONORS: ['hospital', 'admin'],
+    PROCESS_DONATIONS: ['hospital', 'admin'],
+    SEND_REQUESTS: ['hospital', 'admin']
   };
   
   const hasPermission = (userRole, permission) => {

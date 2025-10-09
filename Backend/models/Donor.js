@@ -6,12 +6,19 @@ const DonorSchema = mongoose.Schema({
     ref: 'User'
   },
   name: {
-    type: String,                
+    type: String,
     required: true
   },
   email: {
     type: String,
     required: true,
+  },
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'other']
+  },
+  dateOfBirth: {
+    type: Date
   },
   tel: {
     type: String,

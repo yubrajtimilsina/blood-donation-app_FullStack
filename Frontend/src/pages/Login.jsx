@@ -19,6 +19,7 @@ const Login = () => {
       if (role === 'admin') navigate('/admin');
       else if (role === 'donor') navigate('/donor/dashboard');
       else if (role === 'recipient') navigate('/recipient/dashboard');
+      else if (role === 'hospital') navigate('/hospital/dashboard');
     }
   }, [user.currentUser, navigate]);
 
@@ -38,6 +39,7 @@ const Login = () => {
             if (role === 'admin') navigate('/admin');
             else if (role === 'donor') navigate('/donor/dashboard');
             else if (role === 'recipient') navigate('/recipient/dashboard');
+            else if (role === 'hospital') navigate('/hospital/dashboard');
           }
         }, 500);
       } catch (error) {
