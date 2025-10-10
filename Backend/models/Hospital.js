@@ -20,7 +20,7 @@ const HospitalSchema = mongoose.Schema({
   },
   address: {
     type: String,
-    required: true
+    required: false
   },
   location: {
     type: {
@@ -35,7 +35,7 @@ const HospitalSchema = mongoose.Schema({
   },
   licenseNumber: {
     type: String,
-    required: true
+    required: false
   },
   bloodInventory: {
     'A+': { type: Number, default: 0 },

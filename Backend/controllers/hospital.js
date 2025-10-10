@@ -237,7 +237,7 @@ const getHospitalRequests = async (req, res) => {
             $maxDistance: 50000, // 50km
           },
         },
-      }).populate('recipientId', 'name phone');
+      }).populate('createdBy', 'name phone');
     } else {
       // Fallback: get all pending requests
       requests = await BloodRequest.find({ status: 'pending' })
