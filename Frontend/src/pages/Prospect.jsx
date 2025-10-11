@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { publicRequest } from "../requestMethods";
+import { publicRequest, userRequest } from "../requestMethods";
 import { useSelector } from "react-redux";
 
 const Prospect = () => {
@@ -54,7 +54,7 @@ const Prospect = () => {
         address: prospect.address,
         email: prospect.email,
         tel: prospect.tel,
-        bloodgroup: prospect.bloodgroup, // Note: Backend expects 'bloodGroup' not 'bloodgroup'
+        bloodgroup: prospect.bloodgroup,
         diseases: prospect.diseases,
         date: new Date().toISOString().split('T')[0], // Current date
         weight: prospect.weight,
@@ -63,14 +63,10 @@ const Prospect = () => {
       };
 
       // Send POST request with authorization header
-      await publicRequest.post("/donors", donorData, {
-        headers: {
-          token: `Bearer ${user.currentUser.accessToken}`
-        }
-      });
+      await userRequest.post("/donors", donorData);
 
       // Delete prospect after successful donor creation
-      await publicRequest.delete(`/prospects/${prospectId}`);
+      await userRequest.delete(`/prospects/${prospectId}`);
       
       // Navigate to donors page
       navigate("/admin/donors");
