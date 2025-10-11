@@ -21,7 +21,7 @@ const Navbar = () => {
           
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer">
-            <FaTint className="text-red-500 text-2xl lg:text-3xl" />
+            <img src="/logo2.png" alt="LifeLink" className="h-8 w-8 lg:h-10 lg:w-10" />
             <span className="font-bold text-xl lg:text-2xl text-gray-800">LifeLink</span>
           </div>
 

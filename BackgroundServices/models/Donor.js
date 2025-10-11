@@ -6,12 +6,19 @@ const DonorSchema = mongoose.Schema({
     ref: 'User'
   },
   name: {
-    type: String,                
+    type: String,
     required: true
   },
   email: {
     type: String,
     required: true,
+  },
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'other']
+  },
+  dateOfBirth: {
+    type: Date
   },
   tel: {
     type: String,
@@ -48,7 +55,7 @@ const DonorSchema = mongoose.Schema({
     required: true
   },
   diseases: {
-    type: String,      
+    type: String,
   },
   bloodpressure: {
     type: Number
@@ -92,7 +99,7 @@ DonorSchema.pre('save', function(next) {
     const nextDate = new Date(this.lastDonationDate);
     nextDate.setDate(nextDate.getDate() + 90);
     this.nextEligibleDate = nextDate;
-    
+
     // Auto set availability based on eligibility
     const today = new Date();
     this.isAvailable = today >= nextDate;

@@ -14,6 +14,13 @@ const RecipientSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    gender: {
+        type: String,
+        enum: ['male', 'female', 'other']
+    },
+    dateOfBirth: {
+        type: Date
+    },
     phone: {
         type: String,
         required: true

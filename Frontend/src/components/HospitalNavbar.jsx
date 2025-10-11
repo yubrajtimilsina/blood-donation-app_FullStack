@@ -30,8 +30,8 @@ const HospitalNavbar = () => {
           {/* Logo and Brand */}
           <div className="flex items-center">
             <Link to="/hospital/dashboard" className="flex items-center space-x-3">
-              <FaHospital className="text-white text-2xl" />
-              <span className="text-white font-bold text-xl">BloodCare</span>
+              <img src="/logo2.png" alt="LifeLink" className="h-8 w-8" />
+              <span className="text-white font-bold text-xl">LifeLink</span>
             </Link>
           </div>
 

@@ -13,9 +13,7 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
-                <FaTint className="text-white text-xl" />
-              </div>
+              <img src="/logo2.png" alt="LifeLink" className="w-12 h-12" />
               <div>
                 <h2 className="text-2xl lg:text-3xl font-bold">LifeLink</h2>
                 <div className="w-16 h-1 bg-red-500 rounded-full mt-1"></div>

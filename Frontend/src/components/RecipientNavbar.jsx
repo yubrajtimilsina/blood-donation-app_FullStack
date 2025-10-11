@@ -22,7 +22,7 @@ const RecipientNavbar = () => {
           
           {/* Logo */}
           <Link to="/recipient/dashboard" className="flex items-center gap-2">
-            <FaHospital className="text-red-500 text-2xl" />
+            <img src="/logo2.png" alt="LifeLink" className="h-8 w-8" />
             <span className="font-bold text-xl text-gray-800">LifeLink</span>
           </Link>
 
