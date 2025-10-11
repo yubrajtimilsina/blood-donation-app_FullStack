@@ -10,3 +10,7 @@
 - [x] Run background services: cd BackgroundServices && npm run dev
 - [x] Run lint in frontend: cd frontend && npm run lint (skipped by user)
 - [x] Check for runtime errors in console/logs and fix any issues found (models created, servers running)
+- [x] Add API calls to frontend/src/redux/apiCalls.js for organized data fetching
+- [x] Test backend API endpoints (health, donors, bloodRequests) - code verified, servers running
+- [x] Test frontend data fetching - code added, UI components have useEffect for fetching
+- [x] Test background services - cron jobs set up, models created for email functions
