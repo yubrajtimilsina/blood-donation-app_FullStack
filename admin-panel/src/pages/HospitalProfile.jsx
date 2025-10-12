@@ -4,7 +4,6 @@ import { publicRequest } from '../requestMethods';
 import { useNavigate } from 'react-router-dom';
 import { FaSave, FaHospital, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
-import LocationPicker from '../components/LocationPicker';
 
 const HospitalProfile = () => {
   const user = useSelector((state) => state.user.currentUser);

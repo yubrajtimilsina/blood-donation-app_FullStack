@@ -9,10 +9,10 @@ const createDonor = async (req, res) => {
     try {
         const { name, email, tel, bloodgroup, age, weight, address } = req.body;
         
-        if (!name || !email || !tel || !bloodgroup || !age || !weight) {
+        if (!name || !email || !tel || !bloodgroup || !weight) {
             return res.status(400).json({
                 success: false,
-                message: "Missing required fields"
+                message: "Missing required fields: name, email, tel, bloodgroup, weight"
             });
         }
 

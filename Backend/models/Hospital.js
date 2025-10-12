@@ -20,7 +20,7 @@ const HospitalSchema = mongoose.Schema({
   },
   address: {
     type: String,
-    required: false
+    required: false  // ✅ CHANGED FROM TRUE
   },
   location: {
     type: {
@@ -29,13 +29,13 @@ const HospitalSchema = mongoose.Schema({
       default: 'Point'
     },
     coordinates: {
-      type: [Number], // [longitude, latitude]
+      type: [Number],
       default: [0, 0]
     }
   },
   licenseNumber: {
     type: String,
-    required: false
+    required: false  // ✅ CHANGED FROM TRUE
   },
   bloodInventory: {
     'A+': { type: Number, default: 0 },
@@ -76,7 +76,6 @@ const HospitalSchema = mongoose.Schema({
   timestamps: true
 });
 
-// Index for geospatial queries
 HospitalSchema.index({ location: '2dsphere' });
 
 const Hospital = mongoose.model('Hospital', HospitalSchema);

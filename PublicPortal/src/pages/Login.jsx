@@ -13,15 +13,21 @@ const Login = () => {
   const user = useSelector((state) => state.user);
 
   useEffect(() => {
-    // Redirect based on role if already logged in
+    // Redirect based on user role
     if (user.currentUser) {
       const role = user.currentUser.role;
-      if (role === 'admin') navigate('/admin');
-      else if (role === 'donor') navigate('/donor/dashboard');
-      else if (role === 'recipient') navigate('/recipient/dashboard');
-      else if (role === 'hospital') navigate('/hospital/dashboard');
+
+      if (role === "admin" || role === "hospital") {
+        alert("Please use the Admin/Hospital portal.");
+        window.location.href = "http://localhost:5174"; // Admin portal URL
+        dispatch(logout());
+      } else if (role === "donor") {
+        navigate("/donor/dashboard");
+      } else if (role === "recipient") {
+        navigate("/recipient/dashboard");
+      }
     }
-  }, [user.currentUser, navigate]);
+  }, [user.currentUser, navigate, dispatch]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -30,18 +36,6 @@ const Login = () => {
       try {
         setLoading(true);
         await login(dispatch, { email, password });
-        
-        // Wait for state update then redirect
-        setTimeout(() => {
-          const userData = user.currentUser;
-          if (userData) {
-            const role = userData.role;
-            if (role === 'admin') navigate('/admin');
-            else if (role === 'donor') navigate('/donor/dashboard');
-            else if (role === 'recipient') navigate('/recipient/dashboard');
-            else if (role === 'hospital') navigate('/hospital/dashboard');
-          }
-        }, 500);
       } catch (error) {
         setLoading(false);
         alert("Login failed. Please check your credentials.");
@@ -52,28 +46,32 @@ const Login = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 to-red-100">
       <div className="flex items-center bg-white shadow-2xl rounded-2xl overflow-hidden max-w-4xl w-full">
-        
-        {/* Image Section */}
+        {/* Left Image */}
         <div className="hidden md:block md:w-1/2 h-[600px]">
           <img
             src="/hero1.jpg"
-            alt="login"
-            className="object-cover h-full w-full"
+            alt="Login illustration"
+            className="object-cover w-full h-full"
           />
         </div>
 
-        {/* Form Section */}
+        {/* Login Form */}
         <div className="p-10 w-full md:w-1/2">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h2>
-            <p className="text-gray-600">Login to access your account</p>
+          <div className="mb-8 text-center">
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+              Welcome Back
+            </h2>
+            <p className="text-gray-600">
+              Login to access your donor or recipient dashboard
+            </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
-            
-            {/* Email */}
+            {/* Email Field */}
             <div>
-              <label className="block text-gray-700 mb-2 font-medium">Email</label>
+              <label className="block text-gray-700 mb-2 font-medium">
+                Email
+              </label>
               <div className="relative">
                 <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
@@ -87,9 +85,11 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Password */}
+            {/* Password Field */}
             <div>
-              <label className="block text-gray-700 mb-2 font-medium">Password</label>
+              <label className="block text-gray-700 mb-2 font-medium">
+                Password
+              </label>
               <div className="relative">
                 <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
@@ -105,8 +105,8 @@ const Login = () => {
 
             {/* Error Message */}
             {user.error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                Invalid credentials. Please try again.
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center">
+                ⚠️ Invalid credentials. Please try again.
               </div>
             )}
 
@@ -121,10 +121,24 @@ const Login = () => {
 
             {/* Register Link */}
             <p className="text-center text-gray-600 text-sm">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-red-500 hover:text-red-600 font-semibold">
+              Don’t have an account?{" "}
+              <Link
+                to="/register"
+                className="text-red-500 hover:text-red-600 font-semibold"
+              >
                 Register here
               </Link>
+            </p>
+
+            {/* Admin Portal Link */}
+            <p className="text-center text-gray-600 text-sm">
+              Admin or Hospital?{" "}
+              <a
+                href="http://localhost:5174/login"
+                className="text-red-500 hover:text-red-600 font-semibold"
+              >
+                Go to Admin Portal →
+              </a>
             </p>
           </form>
         </div>

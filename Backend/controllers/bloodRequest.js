@@ -3,7 +3,6 @@ const Donor = require('../models/Donor');
 const Recipient = require('../models/Recipient');
 const { createNotification } = require('./notification');
 const { findNearby } = require('../utils/distance');
-const sendMail = require('../../BackgroundServices/helpers/sendmail');
 
 // Create blood request
 const createBloodRequest = async (req, res) => {
@@ -53,9 +52,8 @@ const createBloodRequest = async (req, res) => {
             }).limit(20);
         }
 
-        // Send notification emails to matching donors
+        // Send in-app notifications to matching donors
         for (let donor of matchingDonors) {
-            // Create in-app notification
             if (donor.userId) {
                 await createNotification(donor.userId, {
                     type: 'blood_request',
@@ -66,49 +64,6 @@ const createBloodRequest = async (req, res) => {
                     relatedModel: 'BloodRequest',
                     actionUrl: `/blood-requests/${savedRequest._id}`
                 });
-            }
-
-            // Send email notification
-            const messageOptions = {
-                from: process.env.EMAIL_USER,
-                to: donor.email,
-                subject: `Urgent: ${req.body.bloodGroup} Blood Donation Needed`,
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #EF4444;">🩸 Urgent Blood Donation Request</h2>
-                        <p>Dear ${donor.name},</p>
-                        <p>We have an urgent request for <strong>${req.body.bloodGroup}</strong> blood donation.</p>
-                        
-                        <div style="background: #FEE2E2; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                            <h3 style="margin-top: 0; color: #DC2626;">Request Details:</h3>
-                            <p><strong>Patient:</strong> ${req.body.patientName}</p>
-                            <p><strong>Hospital:</strong> ${req.body.hospitalName}</p>
-                            <p><strong>Units Needed:</strong> ${req.body.unitsNeeded}</p>
-                            <p><strong>Urgency:</strong> ${req.body.urgency.toUpperCase()}</p>
-                            <p><strong>Required By:</strong> ${new Date(req.body.requiredBy).toLocaleDateString()}</p>
-                            <p><strong>Contact:</strong> ${req.body.contactNumber}</p>
-                            <p><strong>Address:</strong> ${req.body.address}</p>
-                        </div>
-                        
-                        ${req.body.description ? `<p><strong>Additional Info:</strong> ${req.body.description}</p>` : ''}
-                        
-                        <p style="color: #DC2626; font-weight: bold;">Your donation can save a life!</p>
-                        
-                        <p>If you can help, please contact the hospital immediately at ${req.body.contactNumber}</p>
-                        
-                        <div style="background: #F3F4F6; padding: 10px; border-radius: 5px; margin-top: 20px;">
-                            <p style="margin: 0; font-size: 12px; color: #6B7280;">
-                                This is an automated message from LifeLink Blood Donation System.
-                            </p>
-                        </div>
-                    </div>
-                `
-            };
-
-            try {
-                await sendMail(messageOptions);
-            } catch (error) {
-                console.error('Failed to send email to donor:', donor.email, error);
             }
         }
 
@@ -161,7 +116,7 @@ const getAllBloodRequests = async (req, res) => {
 const getNearbyRequests = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { radius = 50 } = req.query; // default 50km
+        const { radius = 50 } = req.query;
 
         // Get donor profile with location
         const donor = await Donor.findOne({ userId });
@@ -251,7 +206,7 @@ const updateBloodRequestStatus = async (req, res) => {
 
         // Update recipient's fulfilled count
         if (status === 'fulfilled' && updatedRequest.createdBy) {
-            const recipient = await Recipient.findOne({ userId: updatedRequest.createdBy });
+            const recipient = await Recipient.findOne({ userId: updatedRequest.createdBy._id });
             if (recipient) {
                 await Recipient.findByIdAndUpdate(recipient._id, {
                     $inc: { fulfilledRequests: 1 }
@@ -260,8 +215,8 @@ const updateBloodRequestStatus = async (req, res) => {
         }
 
         // Send notification to requester
-        if (updatedRequest.createdBy) {
-            await createNotification(updatedRequest.createdBy, {
+        if (updatedRequest.createdBy && updatedRequest.createdBy._id) {
+            await createNotification(updatedRequest.createdBy._id, {
                 type: 'request_fulfilled',
                 title: 'Blood Request Updated',
                 message: `Your blood request has been marked as ${status}`,

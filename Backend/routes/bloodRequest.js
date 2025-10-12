@@ -11,8 +11,8 @@ const { verifyToken } = require('../middlewares/verifyToken');
 const { checkRole } = require('../middlewares/roleCheck');
 const router = express.Router();
 
-// Create blood request (recipients and admin)
-router.post('/', verifyToken, checkRole('recipient', 'admin'), createBloodRequest);
+// Create blood request (recipients, hospitals and admin)
+router.post('/', verifyToken, checkRole('recipient', 'hospital', 'admin'), createBloodRequest);
 
 // Get all blood requests
 router.get('/', getAllBloodRequests);

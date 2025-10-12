@@ -1,13 +1,13 @@
 {
-  "name": "frontend",
+  "name": "donor-panel",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 5173",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview --port 5173"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -23,7 +23,7 @@
     "react-dom": "^19.1.1",
     "react-icons": "^5.5.0",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^6.26.1",
+    "react-router-dom": "^7.9.1",
     "react-scroll": "^1.9.3",
     "react-toastify": "^11.0.5",
     "redux-persist": "^6.0.0",
@@ -31,7 +31,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
-    "@tailwindcss/postcss": "^4.1.13",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
@@ -41,7 +40,7 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.13",
+    "tailwindcss": "^3.4.14",
     "vite": "^7.1.6"
   }
 }

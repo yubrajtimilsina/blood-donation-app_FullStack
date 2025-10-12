@@ -12,18 +12,18 @@ const {
 } = require("../controllers/hospital");
 
 // Hospital profile routes
-router.get("/profile", verifyToken, checkRole('hospital'), getHospitalProfile);
-router.put("/profile", verifyToken, checkRole('hospital'), updateHospitalProfile);
+router.get("/profile", verifyToken, checkRole('hospital', 'admin'), getHospitalProfile);
+router.put("/profile", verifyToken, checkRole('hospital', 'admin'), updateHospitalProfile);
 
 // Blood inventory routes
-router.get("/inventory", verifyToken, checkRole('hospital'), getBloodInventory);
-router.put("/inventory", verifyToken, checkRole('hospital'), updateBloodInventory);
+router.get("/inventory", verifyToken, checkRole('hospital', 'admin'), getBloodInventory);
+router.put("/inventory", verifyToken, checkRole('hospital', 'admin'), updateBloodInventory);
 
 // Hospital donors route
-router.get("/local-donors", verifyToken, checkRole('hospital'), getLocalDonors);
+router.get("/local-donors", verifyToken, checkRole('hospital', 'admin'), getLocalDonors);
 
 // Hospital requests route
-router.get("/requests", verifyToken, checkRole('hospital'), getHospitalRequests);
+router.get("/requests", verifyToken, checkRole('hospital', 'admin'), getHospitalRequests);
 
 // Admin routes
 router.get("/all", verifyToken, checkRole('admin'), getAllHospitals);

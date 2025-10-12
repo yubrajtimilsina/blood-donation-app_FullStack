@@ -1,20 +1,36 @@
 const Hospital = require("../models/Hospital");
 const User = require("../models/User");
+const Donor = require("../models/Donor");
+const BloodRequest = require("../models/BloodRequest");
 
 // Get hospital profile by user ID
 const getHospitalProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const hospital = await Hospital.findOne({ userId });
+    let hospital = await Hospital.findOne({ userId });
 
+    // If hospital doesn't exist, create default profile
     if (!hospital) {
-      return res.status(404).json({
-        success: false,
-        message: "Hospital profile not found",
+      const user = await User.findById(userId);
+      hospital = new Hospital({
+        userId,
+        name: user.name || 'Hospital',
+        email: user.email,
+        phone: user.phone || '000-000-0000',
+        address: 'Address not set',
+        licenseNumber: 'TEMP-' + Date.now(),
+        bloodInventory: {
+          'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0,
+          'AB+': 0, 'AB-': 0, 'O+': 0, 'O-': 0
+        },
+        location: { type: 'Point', coordinates: [0, 0] }
       });
+      await hospital.save();
+      
+      // Update user with hospital profile reference
+      await User.findByIdAndUpdate(userId, { hospitalProfile: hospital._id });
     }
 
-    // Add createdAt and updatedAt dates to response
     const hospitalData = hospital.toObject();
     hospitalData.createdAt = hospital.createdAt;
     hospitalData.updatedAt = hospital.updatedAt;
@@ -109,27 +125,19 @@ const getBloodInventory = async (req, res) => {
 
     // If hospital profile doesn't exist, create a default one
     if (!hospital) {
+      const user = await User.findById(userId);
       hospital = new Hospital({
         userId,
-        name: 'New Hospital',
-        email: req.user.email || '',
-        phone: '000-000-0000',
+        name: user.name || 'Hospital',
+        email: user.email,
+        phone: user.phone || '000-000-0000',
         address: 'Address not set',
         licenseNumber: 'TEMP-' + Date.now(),
         bloodInventory: {
-          'A+': 0,
-          'A-': 0,
-          'B+': 0,
-          'B-': 0,
-          'AB+': 0,
-          'AB-': 0,
-          'O+': 0,
-          'O-': 0
+          'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0,
+          'AB+': 0, 'AB-': 0, 'O+': 0, 'O-': 0
         },
-        location: {
-          type: 'Point',
-          coordinates: [0, 0]
-        }
+        location: { type: 'Point', coordinates: [0, 0] }
       });
       await hospital.save();
 
@@ -176,7 +184,7 @@ const getAllHospitals = async (req, res) => {
 const getLocalDonors = async (req, res) => {
   try {
     const userId = req.user.id;
-    const radius = parseInt(req.query.radius) || 10; // Default 10km
+    const radius = parseInt(req.query.radius) || 10;
 
     // Get hospital location
     const hospital = await Hospital.findOne({ userId });
@@ -190,14 +198,12 @@ const getLocalDonors = async (req, res) => {
       });
     }
 
-    const Donor = require("../models/Donor");
-
     // Find donors within radius
     const donors = await Donor.find({
       location: {
         $near: {
           $geometry: hospital.location,
-          $maxDistance: radius * 1000, // Convert km to meters
+          $maxDistance: radius * 1000,
         },
       },
       isAvailable: true,
@@ -222,8 +228,6 @@ const getHospitalRequests = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const BloodRequest = require("../models/BloodRequest");
-
     // Get requests from this hospital or nearby
     const hospital = await Hospital.findOne({ userId });
     let requests;
@@ -234,14 +238,15 @@ const getHospitalRequests = async (req, res) => {
         location: {
           $near: {
             $geometry: hospital.location,
-            $maxDistance: 50000, // 50km
+            $maxDistance: 50000,
           },
         },
       }).populate('createdBy', 'name phone');
     } else {
       // Fallback: get all pending requests
       requests = await BloodRequest.find({ status: 'pending' })
-        .populate('recipientId', 'name phone');
+        .populate('createdBy', 'name phone')
+        .sort({ createdAt: -1 });
     }
 
     res.status(200).json({

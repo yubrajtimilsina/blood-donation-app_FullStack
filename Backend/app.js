@@ -9,23 +9,32 @@ const hospitalRoute = require('./routes/hospital');
 const adminRoute = require('./routes/admin');
 const notificationRoute = require('./routes/notification');
 
-
-
 const cors = require('cors');
 const dotenv = require('dotenv');
 dotenv.config();
 
+// ✅ UPDATED: Allow both portals
+const allowedOrigins = [
+  process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
+  'http://localhost:5174'
+];
 
-// CORS - allow configured frontend origin
-const allowedOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
-app.use(cors({ origin: allowedOrigin, credentials: true }));
+app.use(cors({ 
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true 
+}));
 
-//JSON
 app.use(express.json());
 
 //ROUTES
-app.use("/api/v1/auth",    authRoute);
-app.use("/api/v1/donors",  donorRoute);
+app.use("/api/v1/auth", authRoute);
+app.use("/api/v1/donors", donorRoute);
 app.use("/api/v1/prospects", prospectRoute);
 app.use("/api/v1/bloodRequests", bloodRequestRoute);
 app.use("/api/v1/recipients", recipientRoute);
@@ -33,8 +42,6 @@ app.use("/api/v1/hospitals", hospitalRoute);
 app.use("/api/v1/admin", adminRoute);
 app.use("/api/v1/notifications", notificationRoute);
 
-
-// Health check
 app.get('/api/v1/health', (req, res) => {
     res.json({ status: 'OK', message: 'Blood Donation API is running' });
 });
