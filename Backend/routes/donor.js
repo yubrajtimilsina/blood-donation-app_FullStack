@@ -24,7 +24,7 @@ router.get('/search/nearby', searchNearbyDonors);
 router.post('/', createDonor);
 
 // Get All Donors
-router.get('/', getAlldonors);
+router.get('/', verifyToken, checkRole('admin', 'hospital'), getAlldonors);
 
 // Get My Donor Profile
 router.get('/me', verifyToken, getMyDonorProfile);

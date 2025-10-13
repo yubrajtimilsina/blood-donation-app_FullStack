@@ -165,7 +165,7 @@ export const ROLES = {
       [ROLES.HOSPITAL]: [
         { label: 'Dashboard', path: '/hospital/dashboard', icon: 'dashboard' },
         { label: 'Manage Inventory', path: '/hospital/inventory', icon: 'blood' },
-        { label: 'Local Donors', path: '/hospital/local-donors', icon: 'users' },
+        { label: 'Donors', path: '/hospital/local-donors', icon: 'users' },
         { label: 'Requests', path: '/hospital/requests', icon: 'request' },
         { label: 'Profile', path: '/hospital/profile', icon: 'profile' },
         { label: 'Notifications', path: '/hospital/notifications', icon: 'bell' }

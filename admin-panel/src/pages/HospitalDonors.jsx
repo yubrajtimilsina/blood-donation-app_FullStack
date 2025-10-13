@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaSearch, FaMapMarkerAlt, FaPhone, FaEnvelope, FaTint, FaUser } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 
-const HospitalLocalDonors = () => {
+const HospitalDonors = () => {
   const user = useSelector((state) => state.user.currentUser);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -95,7 +95,7 @@ const HospitalLocalDonors = () => {
           </button>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <FaUser className="text-green-600" />
-            Local Donors
+            Donors
           </h1>
           <p className="text-gray-600 mt-2">Find and connect with donors in your area</p>
         </div>
@@ -270,4 +270,4 @@ const HospitalLocalDonors = () => {
   );
 };
 
-export default HospitalLocalDonors;
+export default HospitalDonors;
