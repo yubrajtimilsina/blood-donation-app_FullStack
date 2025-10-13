@@ -139,7 +139,7 @@ function App() {
         { path: "portal/:id", element: <DonorPortal /> },
         { path: "nearby-requests", element: <NearbyRequests /> },
         { path: "eligibility", element: <EligibilityChecker /> }, // ✅ ADD THIS ROUTE
-        { path: "history", element: <DonationHistory /> }, // ✅ ADD THIS ROUTE
+        { path: "history/:id", element: <DonationHistory /> }, // ✅ ADD THIS ROUTE
         { path: "notifications", element: <Notifications /> },
       ],
     },

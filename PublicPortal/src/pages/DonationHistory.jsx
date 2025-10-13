@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { userRequest } from "../requestMethods";
+import { useParams } from 'react-router-dom';
+import { publicRequest } from "../requestMethods";
 import { FaCalendarAlt, FaMapMarkerAlt, FaTint } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
@@ -8,12 +9,16 @@ const DonationHistory = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const user = useSelector((state) => state.user.currentUser);
+  const { id } = useParams();
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await userRequest.get(`/donors/${user.donorProfile._id}/history`);
-        setHistory(response.data);
+        const donorId = id || user.donorProfile;
+        const response = await publicRequest.get(`/donors/${donorId}/history`, {
+          headers: { token: `Bearer ${user.accessToken}` }
+        });
+        setHistory(response.data.data || []);
       } catch (error) {
         console.error('Error fetching donation history:', error);
         toast.error('Failed to load donation history');
@@ -22,12 +27,12 @@ const DonationHistory = () => {
       }
     };
 
-    if (user?.donorProfile?._id) {
+    if (user?.donorProfile) {
       fetchHistory();
     } else {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, id]);
 
   if (loading) {
     return (
