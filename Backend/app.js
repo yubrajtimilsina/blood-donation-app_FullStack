@@ -13,10 +13,11 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 dotenv.config();
 
-// ✅ UPDATED: Allow both portals
+// ✅ UPDATED: Allow both portals and additional ports
 const allowedOrigins = [
   process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
-  'http://localhost:5174'
+  'http://localhost:5174',
+  'http://localhost:5175'
 ];
 
 app.use(cors({ 

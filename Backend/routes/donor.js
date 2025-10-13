@@ -1,53 +1,53 @@
 const express = require('express');
 const {
-    createDonor,
-    getAlldonors,
-    updateDonor,
-    getOneDonor,
-    deleteDonor,
-    getDonorsStats,
-    getDonorsMonthly,
-    toggleAvailability,
-    searchNearbyDonors,
-    recordDonation,
-    getDonationHistory,
-    getMyDonorProfile
+  createDonor,
+  getAlldonors,
+  updateDonor,
+  getOneDonor,
+  deleteDonor,
+  getDonorsStats,
+  getDonorsMonthly,
+  toggleAvailability,
+  searchNearbyDonors,
+  recordDonation,
+  getDonationHistory,
+  getMyDonorProfile
 } = require('../controllers/donor');
 const { verifyToken } = require('../middlewares/verifyToken');
 const { checkRole } = require('../middlewares/roleCheck');
 const router = express.Router();
 
-// Public routes
+// 🩸 Public routes
 router.get('/search/nearby', searchNearbyDonors);
 
-// Add Donor (no token for prospect approval)
+// 🩸 Add Donor (no token for prospect approval)
 router.post('/', createDonor);
 
-// Get All Donors
+// 🩸 Get All Donors
 router.get('/', verifyToken, checkRole('admin', 'hospital'), getAlldonors);
 
-// Get My Donor Profile
-router.get('/me', verifyToken, getMyDonorProfile);
+// ✅ MOVE THIS UP (before /:id)
+router.get('/me', verifyToken, checkRole('donor', 'admin'), getMyDonorProfile);
 
-// Get Donor Statistics
+// 🩸 Stats
 router.get('/stats', getDonorsStats);
 router.get('/monthly', getDonorsMonthly);
 
-// Donation history
+// 🩸 Donation history
 router.get('/:donorId/history', verifyToken, getDonationHistory);
 router.post('/:donorId/record-donation', verifyToken, checkRole('admin', 'donor'), recordDonation);
 
-// Availability toggle
+// 🩸 Availability toggle
 router.put('/:id/availability', verifyToken, checkRole('donor', 'admin'), toggleAvailability);
 
-// Get One Donor
+// 🩸 Get One Donor
 router.get('/find/:id', getOneDonor);
 router.get('/:id', getOneDonor);
 
-// Update Donor
+// 🩸 Update Donor
 router.put('/:id', verifyToken, updateDonor);
 
-// Delete Donor
+// 🩸 Delete Donor
 router.delete('/:id', verifyToken, checkRole('admin'), deleteDonor);
 
 module.exports = router;

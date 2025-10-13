@@ -189,12 +189,14 @@ const getLocalDonors = async (req, res) => {
     // Get hospital location
     const hospital = await Hospital.findOne({ userId });
 
-    // If hospital profile doesn't exist or has no location, return empty array
+    // If hospital profile doesn't exist or has no location, return available donors as fallback
     if (!hospital || !hospital.location || hospital.location.coordinates[0] === 0) {
+      // Return a fallback list of available donors so hospitals can still view donors
+      const fallbackDonors = await Donor.find({ isAvailable: true }).limit(100).populate('userId', 'name email phone');
       return res.status(200).json({
         success: true,
-        data: [],
-        message: "Hospital location not set. Please update your hospital profile.",
+        data: fallbackDonors,
+        message: "Hospital location not set. Returning available donors as fallback. Please update your hospital profile to get nearby donors.",
       });
     }
 

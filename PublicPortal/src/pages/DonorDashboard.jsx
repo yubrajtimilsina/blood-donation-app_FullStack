@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { publicRequest } from '../requestMethods';
+import { userRequest, publicRequest } from '../requestMethods';
 import { FaTint, FaBell, FaMapMarkerAlt, FaHistory, FaToggleOn, FaToggleOff } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const DonorDashboard = () => {
   const user = useSelector((state) => state.user.currentUser);
@@ -10,6 +11,7 @@ const DonorDashboard = () => {
   const [nearbyRequests, setNearbyRequests] = useState([]);
   const [donationHistory, setDonationHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -17,37 +19,51 @@ const DonorDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch donor profile using /me endpoint
-      const profileRes = await publicRequest.get('/donors/me', {
-        headers: { token: `Bearer ${user.accessToken}` }
-      });
-      setDonorProfile(profileRes.data.data);
+      setLoading(true);
+      setError(null);
 
-      // Fetch nearby requests
-      const requestsRes = await publicRequest.get('/bloodrequests/nearby?radius=50', {
-        headers: { token: `Bearer ${user.accessToken}` }
-      });
-      setNearbyRequests(requestsRes.data.data || []);
+      // Fetch donor profile using authenticated endpoint
+      const profileRes = await userRequest.get('/donors/me');
+      
+      if (profileRes.data.success) {
+        setDonorProfile(profileRes.data.data);
+        setDonationHistory(profileRes.data.data.donationHistory || []);
+      }
 
-      // Donation history is already included in the profile response
-      setDonationHistory(profileRes.data.data.donationHistory || []);
+      // Fetch nearby requests if location is available
+      try {
+        const requestsRes = await userRequest.get('/bloodrequests/nearby?radius=50');
+        setNearbyRequests(requestsRes.data.data || []);
+      } catch (reqError) {
+        console.log('No nearby requests or location not set:', reqError);
+        setNearbyRequests([]);
+      }
+
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setError(error.response?.data?.message || 'Failed to load dashboard data');
+      toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
   };
 
   const toggleAvailability = async () => {
+    if (!donorProfile) return;
+
     try {
-      await publicRequest.put(
+      const res = await userRequest.put(
         `/donors/${donorProfile._id}/availability`,
-        { isAvailable: !donorProfile.isAvailable },
-        { headers: { token: `Bearer ${user.accessToken}` } }
+        { isAvailable: !donorProfile.isAvailable }
       );
-      setDonorProfile({ ...donorProfile, isAvailable: !donorProfile.isAvailable });
+      
+      if (res.data.success) {
+        setDonorProfile(res.data.data);
+        toast.success(`Status updated to ${res.data.data.isAvailable ? 'Available' : 'Unavailable'}`);
+      }
     } catch (error) {
       console.error('Error toggling availability:', error);
+      toast.error('Failed to update availability');
     }
   };
 
@@ -64,7 +80,28 @@ const DonorDashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !donorProfile) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={fetchDashboardData}
+            className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
@@ -81,7 +118,7 @@ const DonorDashboard = () => {
               <p className="text-red-100">Thank you for being a life-saving hero</p>
             </div>
             <div className="text-right">
-              <div className="text-4xl font-bold">{donorProfile?.bloodgroup}</div>
+              <div className="text-4xl font-bold">{donorProfile?.bloodgroup || 'N/A'}</div>
               <div className="text-red-100 text-sm">Blood Type</div>
             </div>
           </div>
@@ -218,9 +255,9 @@ const DonorDashboard = () => {
             </div>
           </div>
 
-          {/* Donation History */}
+          {/* Donation History & Quick Actions */}
           <div>
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <FaHistory className="text-blue-500" />
                 Recent Donations
@@ -236,13 +273,8 @@ const DonorDashboard = () => {
                       Donation #{donationHistory.length - index}
                     </div>
                     <div className="text-sm text-gray-600">
-                      {new Date(donation.donationDate).toLocaleDateString()}
+                      {new Date(donation.donationDate || donation.date).toLocaleDateString()}
                     </div>
-                    {donation.location?.hospitalName && (
-                      <div className="text-xs text-gray-500">
-                        {donation.location.hospitalName}
-                      </div>
-                    )}
                   </div>
                 ))}
 
@@ -253,35 +285,37 @@ const DonorDashboard = () => {
                 )}
               </div>
 
-              <Link
-                to={`/donor/history/${donorProfile?._id}`}
-                className="block text-center mt-4 text-red-500 hover:text-red-600 text-sm font-semibold"
-              >
-                View Full History
-              </Link>
+              {donorProfile && (
+                <Link
+                  to={`/donor/history/${donorProfile._id}`}
+                  className="block text-center mt-4 text-red-500 hover:text-red-600 text-sm font-semibold"
+                >
+                  View Full History
+                </Link>
+              )}
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+            <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="font-semibold text-gray-800 mb-4">Quick Actions</h3>
               <div className="space-y-2">
                 <Link
-                  to={`/donor/profile/${donorProfile?._id || user.donorProfile}`}
+                  to={`/donor/profile/${donorProfile?._id}`}
                   className="block w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-center transition-colors"
                 >
                   Edit Profile
                 </Link>
                 <Link
-                  to={`/donor/portal/${user.donorProfile}`}
+                  to={`/donor/portal/${donorProfile?._id}`}
                   className="block w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg text-center transition-colors"
                 >
                   View Portal
                 </Link>
                 <Link
-                  to="/donor/notifications"
+                  to="/donor/eligibility"
                   className="block w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-center transition-colors"
                 >
-                  View Notifications
+                  Check Eligibility
                 </Link>
               </div>
             </div>

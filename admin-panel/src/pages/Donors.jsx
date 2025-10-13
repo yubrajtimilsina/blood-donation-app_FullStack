@@ -2,9 +2,11 @@ import { DataGrid } from "@mui/x-data-grid";
 import { Link } from "react-router-dom";
 import { FaTrash, FaEdit, FaTint, FaSearch, FaEye } from "react-icons/fa";
 import { useEffect, useState } from "react";
+import { useSelector } from 'react-redux';
 import { publicRequest } from "../requestMethods.js";
 
 const Donors = () => {
+  const user = useSelector((state) => state.user.currentUser);
   const [donors, setDonors] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBloodGroup, setFilterBloodGroup] = useState("");
@@ -22,7 +24,10 @@ const Donors = () => {
 
   const getDonors = async () => {
     try {
-      const res = await publicRequest.get("/donors");
+      const headers = user?.accessToken
+        ? { headers: { token: `Bearer ${user.accessToken}` } }
+        : {};
+      const res = await publicRequest.get("/donors", headers);
       setDonors(res.data);
     } catch (error) {
       console.log(error);
@@ -32,7 +37,10 @@ const Donors = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this donor?")) {
       try {
-        await publicRequest.delete(`/donors/${id}`);
+        const headers = user?.accessToken
+          ? { headers: { token: `Bearer ${user.accessToken}` } }
+          : {};
+        await publicRequest.delete(`/donors/${id}`, headers);
         getDonors();
       } catch (error) {
         console.log(error);

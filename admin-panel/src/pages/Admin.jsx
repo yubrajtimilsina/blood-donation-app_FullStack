@@ -5,7 +5,7 @@ import { FaUser, FaTint, FaUsers, FaHeart, FaChartBar } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { publicRequest } from "../requestMethods";
 import { logout } from "../redux/userRedux";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 const Admin = () => {
@@ -16,6 +16,7 @@ const Admin = () => {
   const [monthly, setMonthly] = useState([]);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.user.currentUser);
 
   useEffect(() => {
     fetchAllData();
@@ -24,9 +25,10 @@ const Admin = () => {
   const fetchAllData = async () => {
     try {
       setLoading(true);
+      const headers = user?.accessToken ? { headers: { token: `Bearer ${user.accessToken}` } } : {};
       const [statsRes, donorsRes, prospectsRes, donorsMonthlyRes, prospectsMonthlyRes] = await Promise.all([
         publicRequest.get("/donors/stats"),
-        publicRequest.get("/donors"),
+        publicRequest.get("/donors", headers),
         publicRequest.get("/prospects"),
         publicRequest.get("/donors/monthly?months=6"),
         publicRequest.get("/prospects/monthly?months=6")

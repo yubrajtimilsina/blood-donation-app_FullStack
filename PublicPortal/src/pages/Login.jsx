@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/apiCalls";
+import { logout } from "../redux/userRedux";
 import { FaEnvelope, FaLock } from "react-icons/fa";
 
 const Login = () => {
