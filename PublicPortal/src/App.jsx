@@ -12,6 +12,7 @@ import Register from "./pages/Register";
 import DonorDashboard from "./pages/DonorDashboard";
 import DonorProfile from "./pages/DonorProfile";
 import DonorPortal from "./pages/DonorPortal";
+
 import NearbyRequests from "./pages/NearbyRequests";
 import RecipientDashboard from "./pages/RecipientDashboard";
 import RecipientProfile from "./pages/RecipientProfile";
@@ -135,8 +136,9 @@ function App() {
       ),
       children: [
         { path: "dashboard", element: <DonorDashboard /> },
-        { path: "profile", element: <DonorProfile /> },
+        { path: "profile/:id", element: <DonorProfile /> },
         { path: "portal/:id", element: <DonorPortal /> },
+
         { path: "nearby-requests", element: <NearbyRequests /> },
         { path: "eligibility", element: <EligibilityChecker /> }, // ✅ ADD THIS ROUTE
         { path: "history/:id", element: <DonationHistory /> }, // ✅ ADD THIS ROUTE

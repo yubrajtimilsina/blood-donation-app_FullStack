@@ -15,13 +15,9 @@ const DonorPortal = () => {
 
   const fetchDonorData = async () => {
     try {
-      const res = await publicRequest.get(`/donors/${id}`, {
-        headers: {
-          token: `Bearer ${JSON.parse(localStorage.getItem('persist:root'))?.user ? JSON.parse(JSON.parse(localStorage.getItem('persist:root')).user).currentUser.accessToken : ''}`
-        }
-      });
+      const res = await publicRequest.get(`/donors/${id}`);
       setDonorData(res.data);
-      setDonations(res.data.donationHistory || [res.data]); // Use donationHistory from backend
+      setDonations([res.data]); // if you have multiple donations, adjust here
     } catch (error) {
       console.error('Failed to fetch donor data:', error);
     } finally {

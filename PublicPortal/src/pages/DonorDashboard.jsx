@@ -17,11 +17,11 @@ const DonorDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch donor profile
-      const profileRes = await publicRequest.get('/donors/' + user.donorProfile, {
+      // Fetch donor profile using /me endpoint
+      const profileRes = await publicRequest.get('/donors/me', {
         headers: { token: `Bearer ${user.accessToken}` }
       });
-      setDonorProfile(profileRes.data);
+      setDonorProfile(profileRes.data.data);
 
       // Fetch nearby requests
       const requestsRes = await publicRequest.get('/bloodrequests/nearby?radius=50', {
@@ -29,13 +29,8 @@ const DonorDashboard = () => {
       });
       setNearbyRequests(requestsRes.data.data || []);
 
-      // Fetch donation history
-      if (profileRes.data._id) {
-        const historyRes = await publicRequest.get(`/donors/${profileRes.data._id}/history`, {
-          headers: { token: `Bearer ${user.accessToken}` }
-        });
-        setDonationHistory(historyRes.data.data || []);
-      }
+      // Donation history is already included in the profile response
+      setDonationHistory(profileRes.data.data.donationHistory || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -271,10 +266,16 @@ const DonorDashboard = () => {
               <h3 className="font-semibold text-gray-800 mb-4">Quick Actions</h3>
               <div className="space-y-2">
                 <Link
-                  to={`/donor/profile/${user.donorProfile}`}
+                  to={`/donor/profile/${donorProfile?._id || user.donorProfile}`}
                   className="block w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-center transition-colors"
                 >
                   Edit Profile
+                </Link>
+                <Link
+                  to={`/donor/portal/${user.donorProfile}`}
+                  className="block w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg text-center transition-colors"
+                >
+                  View Portal
                 </Link>
                 <Link
                   to="/donor/notifications"

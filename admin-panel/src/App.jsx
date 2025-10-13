@@ -20,6 +20,7 @@ import HospitalInventory from './pages/HospitalInventory';
 import HospitalLocalDonors from './pages/HospitalLocalDonors';
 import HospitalProfile from './pages/HospitalProfile';
 import HospitalRequests from './pages/HospitalRequests';
+import DonorPortal from './pages/DonorPortal';
 
 // Components
 import Menu from './components/Menu';
@@ -104,7 +105,7 @@ function App() {
         { path: "prospect/:id", element: <Prospect /> },
         { path: "newdonor", element: <NewDonor /> },
         { path: "donor/:id", element: <Donor /> },
-        { path: "donor-portal/:id", element: <Donor /> },
+        { path: "donor-portal/:id", element: <DonorPortal /> },
         { path: "bloodRequests", element: <BloodRequests /> },
         { path: "users", element: <AdminUsers /> },
       ],
@@ -124,6 +125,7 @@ function App() {
         { path: "inventory", element: <HospitalInventory /> },
         { path: "requests", element: <HospitalRequests /> },
         { path: "local-donors", element: <HospitalLocalDonors /> },
+        { path: "donor-portal/:id", element: <DonorPortal /> },
       ],
     },
   ]);

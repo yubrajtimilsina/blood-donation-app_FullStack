@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useParams, useNavigate } from 'react-router-dom';
 import { publicRequest } from '../requestMethods';
-import { useNavigate } from 'react-router-dom';
 import { FaSave, FaTint, FaUser } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import LocationPicker from '../components/LocationPicker';
@@ -9,6 +9,7 @@ import LocationPicker from '../components/LocationPicker';
 const DonorProfile = () => {
   const user = useSelector((state) => state.user.currentUser);
   const navigate = useNavigate();
+  const { id } = useParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -27,25 +28,30 @@ const DonorProfile = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [id]);
 
   const fetchProfile = async () => {
     try {
-      const res = await publicRequest.get(`/donors/${user.donorProfile}`, {
+      // Use /me endpoint if no specific id is provided
+      const endpoint = id ? `/donors/${id}` : '/donors/me';
+      const res = await publicRequest.get(endpoint, {
         headers: { token: `Bearer ${user.accessToken}` }
       });
+
+      const profileData = id ? res.data : res.data.data;
+
       setFormData({
-        name: res.data.name || '',
-        email: res.data.email || '',
-        tel: res.data.tel || '',
-        address: res.data.address || '',
-        bloodgroup: res.data.bloodgroup || '',
-        age: res.data.age || '',
-        weight: res.data.weight || '',
-        diseases: res.data.diseases || '',
-        bloodpressure: res.data.bloodpressure || '',
-        preferredDonationCenter: res.data.preferredDonationCenter || '',
-        donationRadius: res.data.donationRadius || 10
+        name: profileData.name || '',
+        email: profileData.email || '',
+        tel: profileData.tel || '',
+        address: profileData.address || '',
+        bloodgroup: profileData.bloodgroup || '',
+        age: profileData.age || '',
+        weight: profileData.weight || '',
+        diseases: profileData.diseases || '',
+        bloodpressure: profileData.bloodpressure || '',
+        preferredDonationCenter: profileData.preferredDonationCenter || '',
+        donationRadius: profileData.donationRadius || 10
       });
     } catch (error) {
       console.error('Error fetching profile:', error);

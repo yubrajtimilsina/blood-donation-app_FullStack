@@ -1,16 +1,17 @@
 const express = require('express');
-const { 
-    createDonor, 
-    getAlldonors, 
-    updateDonor, 
-    getOneDonor, 
-    deleteDonor, 
-    getDonorsStats, 
+const {
+    createDonor,
+    getAlldonors,
+    updateDonor,
+    getOneDonor,
+    deleteDonor,
+    getDonorsStats,
     getDonorsMonthly,
     toggleAvailability,
     searchNearbyDonors,
     recordDonation,
-    getDonationHistory
+    getDonationHistory,
+    getMyDonorProfile
 } = require('../controllers/donor');
 const { verifyToken } = require('../middlewares/verifyToken');
 const { checkRole } = require('../middlewares/roleCheck');
@@ -24,6 +25,9 @@ router.post('/', createDonor);
 
 // Get All Donors
 router.get('/', getAlldonors);
+
+// Get My Donor Profile
+router.get('/me', verifyToken, getMyDonorProfile);
 
 // Get Donor Statistics
 router.get('/stats', getDonorsStats);
