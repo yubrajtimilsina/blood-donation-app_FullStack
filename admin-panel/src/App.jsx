@@ -1,3 +1,4 @@
+// admin-panel/src/App.jsx
 import { RouterProvider, createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import ScrollToTop from './components/ScrollToTop';
@@ -5,6 +6,7 @@ import ScrollToTop from './components/ScrollToTop';
 // Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
+import HospitalRegister from './pages/HospitalRegister'; // ✅ ADD THIS IMPORT
 import Admin from './pages/Admin';
 import AdminUsers from './pages/AdminUsers';
 import Prospects from './pages/Prospects';
@@ -75,10 +77,16 @@ function App() {
       ),
     },
 
-    // Register route
+    // ✅ Register route (General - can redirect based on role)
     {
       path: "/register",
       element: <Register />,
+    },
+
+    // ✅ NEW: Hospital-specific registration route
+    {
+      path: "/register-hospital",
+      element: <HospitalRegister />,
     },
 
     // 🔹 Admin routes (Protected)
@@ -96,7 +104,7 @@ function App() {
         { path: "prospect/:id", element: <Prospect /> },
         { path: "newdonor", element: <NewDonor /> },
         { path: "donor/:id", element: <Donor /> },
-        { path: "donor-portal/:id", element: <Donor /> }, // Donor Portal Page
+        { path: "donor-portal/:id", element: <Donor /> },
         { path: "bloodRequests", element: <BloodRequests /> },
         { path: "users", element: <AdminUsers /> },
       ],

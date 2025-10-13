@@ -147,25 +147,26 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Register Link */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="text-red-500 hover:underline font-medium"
-              >
-                Register here
-              </Link>
-            </p>
-          </div>
+
+
+          <div className="mt-3 text-center">
+           <p className="text-sm text-gray-600">
+                Hospital registration?{" "}
+                    <Link
+                         to="/register-hospital"
+                           className="text-green-500 hover:underline font-medium"
+                     >
+                        Register Hospital →
+                     </Link>
+                   </p>
+           </div>
 
           {/* Public Portal Link */}
           <div className="mt-3 text-center">
             <p className="text-sm text-gray-600">
               Not an admin or hospital?{" "}
               <Link
-                to="http://localhost:5174/login"
+                to="http://localhost:5173/login"
                 className="text-red-500 hover:underline font-medium"
               >
                 Go to Public Portal →

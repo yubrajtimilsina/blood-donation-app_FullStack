@@ -6,6 +6,9 @@ const router = express.Router();
 // REGISTER Router
 router.post("/register", registerUser);
 
+// HOSPITAL REGISTER Router
+router.post("/register-hospital", registerUser);
+
 // LOGIN Router
 router.post("/login", loginUser);
 

@@ -21,6 +21,11 @@ export const login = async (dispatch, user) => {
   }
 };
 
+// Hospital registration API call
+export const registerHospital = async (hospitalData) => {
+  return publicRequest.post("/auth/register-hospital", hospitalData);
+};
+
 // Donor API calls
 export const getDonors = async () => {
   return publicRequest.get("/donors");

@@ -1,3 +1,4 @@
+// PublicPortal/src/App.jsx
 import { RouterProvider, createBrowserRouter, Outlet, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ScrollToTop from "./components/ScrollToTop";
@@ -17,6 +18,11 @@ import RecipientProfile from "./pages/RecipientProfile";
 import MyRequests from "./pages/MyRequests";
 import SearchDonors from "./pages/SearchDonors";
 import Notifications from "./pages/Notifications";
+import CreateBloodRequest from "./pages/CreateBloodRequest";
+import DonationHistory from "./pages/DonationHistory";
+import EligibilityChecker from "./pages/EligibilityChecker";
+import Contact from "./components/Contact";
+import ForgotPassword from "./pages/ForgotPassword";
 
 // Components
 import DonorNavbar from "./components/DonorNavbar";
@@ -73,6 +79,15 @@ function App() {
         </>
       ),
     },
+    {
+      path: "/contact",
+      element: (
+        <>
+          <ScrollToTop />
+          <Contact />
+        </>
+      ),
+    },
 
     // Auth routes
     {
@@ -123,6 +138,8 @@ function App() {
         { path: "profile", element: <DonorProfile /> },
         { path: "portal/:id", element: <DonorPortal /> },
         { path: "nearby-requests", element: <NearbyRequests /> },
+        { path: "eligibility", element: <EligibilityChecker /> }, // ✅ ADD THIS ROUTE
+        { path: "history", element: <DonationHistory /> }, // ✅ ADD THIS ROUTE
         { path: "notifications", element: <Notifications /> },
       ],
     },
@@ -139,6 +156,7 @@ function App() {
         { path: "dashboard", element: <RecipientDashboard /> },
         { path: "profile", element: <RecipientProfile /> },
         { path: "my-requests", element: <MyRequests /> },
+        { path: "create-request", element: <CreateBloodRequest /> }, // ✅ ADD THIS ROUTE
         { path: "search-donors", element: <SearchDonors /> },
         { path: "notifications", element: <Notifications /> },
       ],

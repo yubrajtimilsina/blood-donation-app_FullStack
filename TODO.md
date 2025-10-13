@@ -1,12 +1,46 @@
-# TODO: Fix Tailwind CSS in Blood Donation App
+# TODO: Add Missing Routes and Components to Blood Donation App
 
-## Steps to Complete
-- [x] Rename PublicPortal/tailwing.config.js to tailwind.config.js
-- [x] Update admin-panel/package.json: downgrade tailwindcss to ^3.4.14, remove @tailwindcss/postcss
-- [x] Update PublicPortal/package.json: downgrade tailwindcss to ^3.4.14
-- [x] Create admin-panel/postcss.config.js with Tailwind v3 setup
-- [x] Create PublicPortal/postcss.config.js with Tailwind v3 setup
-- [x] Update admin-panel/src/index.css: remove @import "tailwindcss";
-- [x] Run npm install in admin-panel
-- [x] Run npm install in PublicPortal
-- [x] Test Tailwind by running dev servers and checking styles
+## Current Routes Summary
+### Admin-Panel (React Router)
+- / (redirect based on role)
+- /login, /register
+- /admin/* (dashboard, prospects, donors, prospect/:id, newdonor, donor/:id, donor-portal/:id, bloodRequests, users)
+- /hospital/* (dashboard, profile, inventory, requests, local-donors)
+
+### PublicPortal (React Router)
+- / (home), /about, /faq
+- /login, /register
+- /donor/* (dashboard, profile, portal/:id, nearby-requests, notifications)
+- /recipient/* (dashboard, profile, my-requests, search-donors, notifications)
+
+### Backend API (/api/v1)
+- auth: register, login, me, password
+- donors: CRUD, stats, monthly, history, record-donation, availability, search/nearby
+- prospects: CRUD, monthly
+- bloodRequests: CRUD, nearby
+- recipients: profile CRUD, verify
+- hospitals: profile, inventory, local-donors, requests, all
+- admin: stats, users CRUD, verify, analytics
+- notifications: CRUD, unread-count
+
+## Missing Routes/Components to Add
+- [ ] Forgot Password: /forgot-password (frontend + backend)
+- [ ] Hospital Registration: /hospital/register (route HospitalRegister.jsx)
+- [ ] Create Blood Request: /recipient/create-request (route CreateBloodRequest.jsx)
+- [ ] Donation History: /donor/history (create DonationHistory.jsx page)
+- [ ] Eligibility Checker: /donor/eligibility (create EligibilityChecker.jsx page)
+- [ ] Contact Page: /contact (route Contact.jsx)
+- [ ] User Verification: /verify (for OTP/email verification)
+- [ ] Map View: /map (for nearby donors/requests, integrate LocationPicker)
+- [ ] Analytics Dashboard: /admin/analytics (create Analytics.jsx page)
+- [ ] Advanced Search: Add filters/pagination to existing search pages
+- [ ] Real-time Notifications: Enhance NotificationBell with WebSocket/polling
+
+## Features to Enhance
+- [ ] Add pagination to lists (donors, requests, etc.)
+- [ ] Add search filters (blood type, location, etc.)
+- [ ] Integrate maps for location-based features
+- [ ] Add email verification flow
+- [ ] Add donation eligibility quiz
+- [ ] Add user profile verification
+- [ ] Add real-time notifications
