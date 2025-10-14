@@ -383,35 +383,82 @@ const getDonationHistory = async (req, res) => {
 };
 
 // Get My Donor Profile
-// ✅ ADD THIS NEW ENDPOINT
+// ✅ FIXED: Get My Donor Profile with better error handling
 const getMyDonorProfile = async (req, res) => {
     try {
       const userId = req.user.id;
-
-      const donor = await Donor.findOne({ userId })
-        .populate('userId', 'name email verified');
-
-      if (!donor) {
+      
+      console.log('🔍 Fetching donor profile for userId:', userId);
+  
+      // First check if user exists
+      const user = await User.findById(userId);
+      if (!user) {
         return res.status(404).json({
           success: false,
-          message: "Donor profile not found"
+          message: "User not found"
         });
       }
-
+  
+      console.log('✅ User found:', user.email, 'Role:', user.role);
+      console.log('📋 User donorProfile reference:', user.donorProfile);
+  
+      // Check if user is a donor
+      if (user.role !== 'donor') {
+        return res.status(403).json({
+          success: false,
+          message: "User is not registered as a donor"
+        });
+      }
+  
+      // Find donor profile
+      let donor = await Donor.findOne({ userId })
+        .populate('userId', 'name email verified');
+  
+      console.log('🔍 Donor query result:', donor ? 'Found' : 'Not found');
+  
+      // ✅ If donor profile doesn't exist, create it automatically
+      if (!donor) {
+        console.log('⚠️ Donor profile not found, creating new one...');
+        
+        donor = new Donor({
+          userId: user._id,
+          name: user.name,
+          email: user.email,
+          tel: user.phone || "",
+          address: "Not provided",
+          bloodgroup: "Not specified",
+          weight: 50,
+          age: 18,
+          date: new Date().toISOString().split("T")[0],
+          isAvailable: true,
+          location: { type: 'Point', coordinates: [0, 0] }
+        });
+  
+        await donor.save();
+        
+        // Update user reference
+        user.donorProfile = donor._id;
+        await user.save();
+        
+        console.log('✅ New donor profile created:', donor._id);
+      }
+  
       // Get donation history
       const donationHistory = await DonationHistory.find({ donorId: donor._id })
         .sort({ donationDate: -1 })
         .limit(10);
-
+  
+      console.log('📊 Donation history count:', donationHistory.length);
+  
       res.status(200).json({
         success: true,
-        data: {
-          ...donor.toObject(),
-          donationHistory
+        data: { 
+          ...donor.toObject(), 
+          donationHistory 
         }
       });
     } catch (error) {
-      console.error('Error fetching donor profile:', error);
+      console.error('❌ Error fetching donor profile:', error);
       res.status(500).json({
         success: false,
         message: "Failed to fetch donor profile",

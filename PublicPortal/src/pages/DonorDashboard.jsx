@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { userRequest, publicRequest } from '../requestMethods';
+import { userRequest } from '../requestMethods';
 import { FaTint, FaBell, FaMapMarkerAlt, FaHistory, FaToggleOn, FaToggleOff } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const DonorDashboard = () => {
   const user = useSelector((state) => state.user.currentUser);
@@ -14,35 +15,52 @@ const DonorDashboard = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (user) {
+      console.log('👤 Current user:', user.email, 'Role:', user.role);
+      console.log('🔑 Token exists:', !!user.accessToken);
+      fetchDashboardData();
+    }
+  }, [user]);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch donor profile using authenticated endpoint
+      console.log('📡 Fetching donor profile...');
+
+      // ✅ FIXED: Proper API call with error handling
       const profileRes = await userRequest.get('/donors/me');
       
+      console.log('✅ Profile response:', profileRes.data);
+
       if (profileRes.data.success) {
         setDonorProfile(profileRes.data.data);
         setDonationHistory(profileRes.data.data.donationHistory || []);
+        console.log('✅ Donor profile loaded:', profileRes.data.data._id);
+      } else {
+        throw new Error(profileRes.data.message || 'Failed to fetch profile');
       }
 
-      // Fetch nearby requests if location is available
+      // Fetch nearby requests
       try {
+        console.log('📡 Fetching nearby requests...');
         const requestsRes = await userRequest.get('/bloodrequests/nearby?radius=50');
-        setNearbyRequests(requestsRes.data.data || []);
+        
+        if (requestsRes.data.success) {
+          setNearbyRequests(requestsRes.data.data || []);
+          console.log('✅ Nearby requests loaded:', requestsRes.data.count);
+        }
       } catch (reqError) {
-        console.log('No nearby requests or location not set:', reqError);
+        console.log('⚠️ No nearby requests:', reqError.response?.data?.message);
         setNearbyRequests([]);
       }
 
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setError(error.response?.data?.message || 'Failed to load dashboard data');
-      toast.error('Failed to load dashboard data');
+      console.error('❌ Dashboard error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load dashboard';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -91,16 +109,24 @@ const DonorDashboard = () => {
   if (error && !donorProfile) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
+        <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Dashboard</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={fetchDashboardData}
-            className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold"
-          >
-            Try Again
-          </button>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Unable to Load Dashboard</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <div className="space-y-3">
+            <button
+              onClick={fetchDashboardData}
+              className="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => window.location.href = '/'}
+              className="w-full bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+            >
+              Go to Home
+            </button>
+          </div>
         </div>
       </div>
     );

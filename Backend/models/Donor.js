@@ -21,12 +21,10 @@ const DonorSchema = mongoose.Schema({
     type: Date
   },
   tel: {
-    type: String,
-    required: true
+    type: String
   },
   address: {
-    type: String,
-    required: true
+    type: String
   },
   location: {
     type: {
@@ -92,6 +90,8 @@ const DonorSchema = mongoose.Schema({
 
 // Index for geospatial queries
 DonorSchema.index({ location: '2dsphere' });
+DonorSchema.index({ userId: 1 });
+DonorSchema.index({ bloodgroup: 1, isAvailable: 1 });
 
 // Calculate next eligible date when last donation date is set
 DonorSchema.pre('save', function(next) {
@@ -106,6 +106,7 @@ DonorSchema.pre('save', function(next) {
   }
   next();
 });
+
 
 const Donor = mongoose.model('Donor', DonorSchema);
 

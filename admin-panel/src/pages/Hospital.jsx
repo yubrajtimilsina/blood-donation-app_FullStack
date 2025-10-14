@@ -25,23 +25,26 @@ const Hospital = () => {
   const fetchAllData = async () => {
     try {
       setLoading(true);
+      
+      // ✅ FIXED: Use correct endpoints
       const [inventoryRes, donorsRes, requestsRes] = await Promise.all([
         publicRequest.get("/hospitals/inventory", {
           headers: { token: `Bearer ${user.accessToken}` }
         }),
-        publicRequest.get("/donors", {
+        publicRequest.get("/hospitals/local-donors", {
           headers: { token: `Bearer ${user.accessToken}` }
         }),
-        publicRequest.get("/bloodRequests", {
+        publicRequest.get("/hospitals/requests", {
           headers: { token: `Bearer ${user.accessToken}` }
         })
       ]);
-
+  
       setBloodInventory(inventoryRes.data.data || {});
-      setDonors(donorsRes.data || []);
+      setDonors(donorsRes.data.data || []);
       setRequests(requestsRes.data.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
+      toast.error('Failed to load hospital data');
     } finally {
       setLoading(false);
     }
