@@ -1,6 +1,7 @@
 const Donor = require("../models/Donor");
 const User = require("../models/User");
 const DonationHistory = require("../models/DonationHistory");
+const mongoose = require('mongoose');
 const { geocodeAddress } = require('../utils/geocoding');
 const { findNearby } = require('../utils/distance');
 
@@ -382,37 +383,42 @@ const getDonationHistory = async (req, res) => {
 };
 
 // Get My Donor Profile
+// ✅ ADD THIS NEW ENDPOINT
 const getMyDonorProfile = async (req, res) => {
     try {
-        const userId = req.user.id;
+      const userId = req.user.id;
 
-        const donor = await Donor.findOne({ userId })
-            .populate('userId', 'name email verified');
+      const donor = await Donor.findOne({ userId })
+        .populate('userId', 'name email verified');
 
-        if (!donor) {
-            return res.status(404).json({
-                success: false,
-                message: "Donor profile not found"
-            });
+      if (!donor) {
+        return res.status(404).json({
+          success: false,
+          message: "Donor profile not found"
+        });
+      }
+
+      // Get donation history
+      const donationHistory = await DonationHistory.find({ donorId: donor._id })
+        .sort({ donationDate: -1 })
+        .limit(10);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          ...donor.toObject(),
+          donationHistory
         }
-
-        // Get donation history
-        const donationHistory = await DonationHistory.find({ donorId: donor._id })
-            .sort({ donationDate: -1 })
-            .limit(10);
-
-        res.status(200).json({
-            success: true,
-            data: { ...donor.toObject(), donationHistory }
-        });
+      });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch donor profile",
-            error: error.message
-        });
+      console.error('Error fetching donor profile:', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch donor profile",
+        error: error.message
+      });
     }
-};
+  };
 
 module.exports = {
     createDonor,
