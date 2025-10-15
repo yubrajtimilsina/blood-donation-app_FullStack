@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { publicRequest } from '../requestMethods';
+import { userRequest } from '../requestMethods';
 import { Link } from 'react-router-dom';
 import { FaPlus, FaHospital, FaCheckCircle, FaClock, FaTimesCircle, FaSearch } from 'react-icons/fa';
 
@@ -21,18 +21,16 @@ const RecipientDashboard = () => {
 
   const fetchMyRequests = async () => {
     try {
-      const res = await publicRequest.get(`/bloodrequests?userId=${user._id}`, {
-        headers: { token: `Bearer ${user.accessToken}` }
-      });
-      
-      const requests = res.data.data || [];
+      const res = await userRequest.get(`/bloodRequests?userId=${user._id}`);
+
+      const requests = res.data.data || res.data || [];
       setMyRequests(requests);
 
       // Calculate stats
       const pending = requests.filter(r => r.status === 'pending').length;
       const fulfilled = requests.filter(r => r.status === 'fulfilled').length;
       const cancelled = requests.filter(r => r.status === 'cancelled').length;
-      
+
       setStats({
         pending,
         fulfilled,
@@ -41,6 +39,13 @@ const RecipientDashboard = () => {
       });
     } catch (error) {
       console.error('Error fetching requests:', error);
+      setMyRequests([]);
+      setStats({
+        pending: 0,
+        fulfilled: 0,
+        cancelled: 0,
+        total: 0
+      });
     } finally {
       setLoading(false);
     }

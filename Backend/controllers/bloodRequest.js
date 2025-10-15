@@ -87,7 +87,7 @@ const createBloodRequest = async (req, res) => {
 const getAllBloodRequests = async (req, res) => {
     try {
         const { status, bloodGroup, urgency, userId } = req.query;
-        
+
         const filter = {};
         if (status) filter.status = status;
         if (bloodGroup) filter.bloodGroup = bloodGroup;
@@ -104,6 +104,7 @@ const getAllBloodRequests = async (req, res) => {
             data: requests
         });
     } catch (error) {
+        console.error('Get all blood requests error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to fetch blood requests',
@@ -113,45 +114,82 @@ const getAllBloodRequests = async (req, res) => {
 };
 
 // Get nearby blood requests for donor
+// ✅ FIXED: Get nearby requests
 const getNearbyRequests = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const { radius = 50 } = req.query;
-
-        // Get donor profile with location
-        const donor = await Donor.findOne({ userId });
-        
-        if (!donor || !donor.location || donor.location.coordinates[0] === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Donor location not set. Please update your profile.'
-            });
-        }
-
-        // Find nearby blood requests matching donor's blood group
-        const nearbyRequests = await findNearby(
-            BloodRequest,
-            donor.location.coordinates,
-            parseInt(radius),
-            {
-                bloodGroup: donor.bloodgroup,
-                status: 'pending'
+      const userId = req.user.id;
+      const { radius = 50 } = req.query;
+  
+      const donor = await Donor.findOne({ userId });
+      
+      if (!donor) {
+        return res.status(400).json({
+          success: false,
+          message: 'Donor profile not found. Please complete your profile.'
+        });
+      }
+  
+      if (!donor.location || donor.location.coordinates[0] === 0) {
+        // Return all pending requests as fallback
+        const requests = await BloodRequest.find({
+          status: 'pending',
+          bloodGroup: donor.bloodgroup
+        })
+          .populate('createdBy', 'name phone email')
+          .sort({ createdAt: -1 })
+          .limit(20);
+  
+        return res.status(200).json({
+          success: true,
+          count: requests.length,
+          data: requests,
+          message: 'Location not set. Showing all matching requests.'
+        });
+      }
+  
+      // Use aggregation for geospatial query
+      const nearbyRequests = await BloodRequest.aggregate([
+        {
+          $geoNear: {
+            near: donor.location,
+            distanceField: "distance",
+            maxDistance: parseInt(radius) * 1000,
+            spherical: true,
+            query: {
+              bloodGroup: donor.bloodgroup,
+              status: 'pending'
             }
-        );
-
-        res.status(200).json({
-            success: true,
-            count: nearbyRequests.length,
-            data: nearbyRequests
-        });
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'createdBy',
+            foreignField: '_id',
+            as: 'createdByInfo'
+          }
+        },
+        {
+          $unwind: { path: '$createdByInfo', preserveNullAndEmptyArrays: true }
+        },
+        { $sort: { urgency: -1, distance: 1 } },
+        { $limit: 50 }
+      ]);
+  
+      res.status(200).json({
+        success: true,
+        count: nearbyRequests.length,
+        data: nearbyRequests
+      });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch nearby requests',
-            error: error.message
-        });
+      console.error('Get nearby requests error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch nearby requests',
+        error: error.message
+      });
     }
-};
+  };
 
 // Get single blood request
 const getBloodRequest = async (req, res) => {

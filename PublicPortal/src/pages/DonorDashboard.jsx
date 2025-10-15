@@ -1,7 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { userRequest } from '../requestMethods';
-import { FaTint, FaBell, FaMapMarkerAlt, FaHistory, FaToggleOn, FaToggleOff } from 'react-icons/fa';
+import {
+  FaTint,
+  FaBell,
+  FaMapMarkerAlt,
+  FaHistory,
+  FaToggleOn,
+  FaToggleOff,
+  FaSyncAlt,
+  FaExclamationTriangle,
+} from 'react-icons/fa';
+
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -13,6 +23,7 @@ const DonorDashboard = () => {
   const [donationHistory, setDonationHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -22,16 +33,20 @@ const DonorDashboard = () => {
     }
   }, [user]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
 
       console.log('📡 Fetching donor profile...');
 
       // ✅ FIXED: Proper API call with error handling
       const profileRes = await userRequest.get('/donors/me');
-      
+
       console.log('✅ Profile response:', profileRes.data);
 
       if (profileRes.data.success) {
@@ -46,7 +61,7 @@ const DonorDashboard = () => {
       try {
         console.log('📡 Fetching nearby requests...');
         const requestsRes = await userRequest.get('/bloodrequests/nearby?radius=50');
-        
+
         if (requestsRes.data.success) {
           setNearbyRequests(requestsRes.data.data || []);
           console.log('✅ Nearby requests loaded:', requestsRes.data.count);
@@ -56,6 +71,10 @@ const DonorDashboard = () => {
         setNearbyRequests([]);
       }
 
+      if (isRefresh) {
+        toast.success('Dashboard refreshed successfully!');
+      }
+
     } catch (error) {
       console.error('❌ Dashboard error:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Failed to load dashboard';
@@ -63,8 +82,9 @@ const DonorDashboard = () => {
       toast.error(errorMessage);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, []);
 
   const toggleAvailability = async () => {
     if (!donorProfile) return;
@@ -143,71 +163,81 @@ const DonorDashboard = () => {
               <h1 className="text-3xl font-bold mb-2">Welcome, {user.name}!</h1>
               <p className="text-red-100">Thank you for being a life-saving hero</p>
             </div>
-            <div className="text-right">
-              <div className="text-4xl font-bold">{donorProfile?.bloodgroup || 'N/A'}</div>
-              <div className="text-red-100 text-sm">Blood Type</div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="text-4xl font-bold">{donorProfile?.bloodgroup || 'N/A'}</div>
+                <div className="text-red-100 text-sm">Blood Type</div>
+              </div>
+              <button
+                onClick={() => fetchDashboardData(true)}
+                disabled={refreshing}
+                className="bg-white/20 hover:bg-white/30 p-3 rounded-full transition-colors disabled:opacity-50"
+                title="Refresh Dashboard"
+              >
+                <FaSyncAlt className={`text-white text-xl ${refreshing ? 'animate-spin' : ''}`} />
+              </button>
             </div>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          
-          <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
+
+          <div className="bg-white rounded-lg shadow-sm p-4 lg:p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-2">
-              <FaTint className="text-3xl text-red-500" />
+              <FaTint className="text-2xl lg:text-3xl text-red-500" />
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-800">
+                <div className="text-xl lg:text-2xl font-bold text-gray-800">
                   {donorProfile?.totalDonations || 0}
                 </div>
-                <div className="text-sm text-gray-600">Total Donations</div>
+                <div className="text-xs lg:text-sm text-gray-600">Total Donations</div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white rounded-lg shadow-sm p-4 lg:p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-2">
-              <FaBell className="text-3xl text-blue-500" />
+              <FaBell className="text-2xl lg:text-3xl text-blue-500" />
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-800">
+                <div className="text-xl lg:text-2xl font-bold text-gray-800">
                   {nearbyRequests.length}
                 </div>
-                <div className="text-sm text-gray-600">Nearby Requests</div>
+                <div className="text-xs lg:text-sm text-gray-600">Nearby Requests</div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white rounded-lg shadow-sm p-4 lg:p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-2">
-              <FaHistory className="text-3xl text-green-500" />
+              <FaHistory className="text-2xl lg:text-3xl text-green-500" />
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-800">
+                <div className="text-xl lg:text-2xl font-bold text-gray-800">
                   {calculateNextDonation()}
                 </div>
-                <div className="text-sm text-gray-600">Next Eligible</div>
+                <div className="text-xs lg:text-sm text-gray-600">Next Eligible</div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white rounded-lg shadow-sm p-4 lg:p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm text-gray-600 mb-2">Availability</div>
+              <div className="w-full">
+                <div className="text-xs lg:text-sm text-gray-600 mb-2">Availability</div>
                 <button
                   onClick={toggleAvailability}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${
+                  className={`flex items-center justify-center gap-2 w-full px-3 py-2 lg:px-4 lg:py-2 rounded-lg font-semibold transition-colors ${
                     donorProfile?.isAvailable
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-gray-100 text-gray-700'
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   {donorProfile?.isAvailable ? (
                     <>
-                      <FaToggleOn className="text-xl" /> Available
+                      <FaToggleOn className="text-lg lg:text-xl" /> Available
                     </>
                   ) : (
                     <>
-                      <FaToggleOff className="text-xl" /> Unavailable
+                      <FaToggleOff className="text-lg lg:text-xl" /> Unavailable
                     </>
                   )}
                 </button>

@@ -4,6 +4,7 @@ import { publicRequest } from '../requestMethods';
 import { useNavigate } from 'react-router-dom';
 import { FaSave, FaHospital, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
+import { LocationPicker } from '../components/LocationPicker';
 
 const HospitalProfile = () => {
   const user = useSelector((state) => state.user.currentUser);
@@ -12,7 +13,7 @@ const HospitalProfile = () => {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    address: '',
+    address: '', 
     phone: '',
     email: '',
     licenseNumber: '',
@@ -38,9 +39,7 @@ const HospitalProfile = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await publicRequest.get(`/hospital/profile`, {
-        headers: { token: `Bearer ${user.accessToken}` }
-      });
+      const res = await publicRequest.get(`/hospitals/profile`);
       setFormData({
         name: res.data.data.name || '',
         address: res.data.data.address || '',
@@ -109,7 +108,7 @@ const HospitalProfile = () => {
 
     try {
       await publicRequest.put(
-        `/hospital/profile`,
+        `/hospitals/profile`,
         formData,
         { headers: { token: `Bearer ${user.accessToken}` } }
       );

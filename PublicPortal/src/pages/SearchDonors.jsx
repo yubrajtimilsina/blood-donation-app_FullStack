@@ -46,20 +46,31 @@ const SearchDonors = () => {
 
     try {
       const { latitude, longitude, bloodgroup, radius } = searchParams;
-      
-      let url = '/donors?';
+
+      let url = '/donors/public';
+      const params = new URLSearchParams();
+
       if (latitude && longitude) {
-        url = `/donors/search/nearby?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
+        url = '/donors/search/nearby';
+        params.append('latitude', latitude);
+        params.append('longitude', longitude);
+        params.append('radius', radius);
       }
+
       if (bloodgroup) {
-        url += `${url.includes('?') ? '&' : '?'}bloodgroup=${bloodgroup}`;
+        params.append('bloodgroup', bloodgroup);
+      }
+
+      if (params.toString()) {
+        url += '?' + params.toString();
       }
 
       const res = await publicRequest.get(url);
-      setDonors(res.data.data || res.data);
+      setDonors(res.data.data || res.data || []);
     } catch (error) {
       console.error('Search error:', error);
-      alert('Failed to search donors');
+      setDonors([]);
+      alert('Failed to search donors. Please try again.');
     } finally {
       setLoading(false);
     }

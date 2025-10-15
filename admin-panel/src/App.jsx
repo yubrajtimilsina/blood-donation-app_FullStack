@@ -21,7 +21,7 @@ import HospitalDonors from './pages/HospitalDonors';
 import HospitalProfile from './pages/HospitalProfile';
 import HospitalRequests from './pages/HospitalRequests';
 import DonorPortal from './pages/DonorPortal';
-
+import HospitalNotifications from './pages/HospitalNotifications';
 // Components
 import Menu from './components/Menu';
 import HospitalNavbar from './components/HospitalNavbar';
@@ -125,6 +125,7 @@ function App() {
         { path: "inventory", element: <HospitalInventory /> },
         { path: "requests", element: <HospitalRequests /> },
         { path: "local-donors", element: <HospitalDonors /> },
+        { path: "notifications", element: <HospitalNotifications /> },
         { path: "donor-portal/:id", element: <DonorPortal /> },
       ],
     },

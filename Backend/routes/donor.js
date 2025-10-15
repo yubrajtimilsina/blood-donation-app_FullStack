@@ -11,7 +11,7 @@ const {
   searchNearbyDonors,
   recordDonation,
   getDonationHistory,
-  getMyDonorProfile  // ✅ ADD THIS IMPORT
+  getMyDonorProfile  // ✅ Import this
 } = require('../controllers/donor');
 const { verifyToken } = require('../middlewares/verifyToken');
 const { checkRole } = require('../middlewares/roleCheck');
@@ -19,9 +19,10 @@ const router = express.Router();
 
 // 🩸 Public routes
 router.get('/search/nearby', searchNearbyDonors);
+router.get('/public', getAlldonors); // Public route to get all donors
 router.post('/', createDonor);
 
-// ✅ CRITICAL: This MUST come before /:id routes
+// ⚠️ CRITICAL: This MUST be BEFORE /:id routes
 router.get('/me', verifyToken, checkRole('donor', 'admin'), getMyDonorProfile);
 
 // 🩸 Protected routes
