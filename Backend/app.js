@@ -8,16 +8,18 @@ const recipientRoute = require('./routes/recipient');
 const hospitalRoute = require('./routes/hospital');
 const adminRoute = require('./routes/admin');
 const notificationRoute = require('./routes/notification');
+const chatRoute = require('./routes/Chat');
+const errorHandler = require('./middlewares/errorHandler');
+
 
 const cors = require('cors');
 const dotenv = require('dotenv');
 dotenv.config();
 
-// ✅ UPDATED: Allow both portals and additional ports
+// ✅ UPDATED: Allow both portals
 const allowedOrigins = [
   process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175'
+  'http://localhost:5174'
 ];
 
 app.use(cors({ 
@@ -42,7 +44,7 @@ app.use("/api/v1/recipients", recipientRoute);
 app.use("/api/v1/hospitals", hospitalRoute);
 app.use("/api/v1/admin", adminRoute);
 app.use("/api/v1/notifications", notificationRoute);
-
+app.use("/api/v1/chats", chatRoute);
 app.get('/api/v1/health', (req, res) => {
     res.json({ status: 'OK', message: 'Blood Donation API is running' });
 });
@@ -53,5 +55,7 @@ app.use((req, res) => {
         message: 'Route not found' 
     });
 });
+
+app.use(errorHandler);
 
 module.exports = app;

@@ -35,6 +35,7 @@
 - [ ] Analytics Dashboard: /admin/analytics (create Analytics.jsx page)
 - [ ] Advanced Search: Add filters/pagination to existing search pages
 - [ ] Real-time Notifications: Enhance NotificationBell with WebSocket/polling
+- [x] Real-time Chat System: Implement Socket.IO chat for donors, recipients, hospitals, and admins
 
 ## Features to Enhance
 - [ ] Add pagination to lists (donors, requests, etc.)

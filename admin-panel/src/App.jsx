@@ -22,6 +22,7 @@ import HospitalProfile from './pages/HospitalProfile';
 import HospitalRequests from './pages/HospitalRequests';
 import DonorPortal from './pages/DonorPortal';
 import HospitalNotifications from './pages/HospitalNotifications';
+import Chat from './pages/Chat';
 // Components
 import Menu from './components/Menu';
 import HospitalNavbar from './components/HospitalNavbar';
@@ -108,6 +109,7 @@ function App() {
         { path: "donor-portal/:id", element: <DonorPortal /> },
         { path: "bloodRequests", element: <BloodRequests /> },
         { path: "users", element: <AdminUsers /> },
+        { path: "chat", element: <Chat /> },
       ],
     },
 
@@ -127,6 +129,7 @@ function App() {
         { path: "local-donors", element: <HospitalDonors /> },
         { path: "notifications", element: <HospitalNotifications /> },
         { path: "donor-portal/:id", element: <DonorPortal /> },
+        { path: "chat", element: <Chat /> },
       ],
     },
   ]);

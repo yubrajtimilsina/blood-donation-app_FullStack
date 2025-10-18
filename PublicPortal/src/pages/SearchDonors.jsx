@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { publicRequest } from '../requestMethods';
-import { FaSearch, FaTint, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
+import { FaSearch, FaTint, FaMapMarkerAlt, FaPhone, FaEnvelope, FaComments } from 'react-icons/fa';
+import ChatModal from '../components/ChatModal';
 
 const SearchDonors = () => {
   const [searchParams, setSearchParams] = useState({
@@ -12,6 +13,7 @@ const SearchDonors = () => {
   const [donors, setDonors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [chatModal, setChatModal] = useState({ isOpen: false, recipientId: null, recipientName: '', recipientRole: '' });
 
   const handleChange = (e) => {
     setSearchParams({
@@ -270,17 +272,39 @@ const SearchDonors = () => {
                     </div>
                   </div>
 
-                  <a
-                    href={`tel:${donor.tel}`}
-                    className="mt-4 block w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-center font-semibold transition-colors"
-                  >
-                    Contact Donor
-                  </a>
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={() => setChatModal({
+                        isOpen: true,
+                        recipientId: donor._id,
+                        recipientName: donor.name,
+                        recipientRole: 'donor'
+                      })}
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                    >
+                      <FaComments /> Message
+                    </button>
+                    <a
+                      href={`tel:${donor.tel}`}
+                      className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm font-semibold transition-colors text-center"
+                    >
+                      Call
+                    </a>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        {/* Chat Modal */}
+        <ChatModal
+          isOpen={chatModal.isOpen}
+          onClose={() => setChatModal({ isOpen: false, recipientId: null, recipientName: '', recipientRole: '' })}
+          recipientId={chatModal.recipientId}
+          recipientName={chatModal.recipientName}
+          recipientRole={chatModal.recipientRole}
+        />
       </div>
     </div>
   );

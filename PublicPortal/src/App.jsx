@@ -24,6 +24,7 @@ import DonationHistory from "./pages/DonationHistory";
 import EligibilityChecker from "./pages/EligibilityChecker";
 import Contact from "./components/Contact";
 import ForgotPassword from "./pages/ForgotPassword";
+import Chat from "./pages/Chat";
 
 // Components
 import DonorNavbar from "./components/DonorNavbar";
@@ -95,7 +96,7 @@ function App() {
       path: "/login",
       element: user ? (
         user.role === "donor" ? (
-          <Navigate to="/donor/dashboard" />
+          <Navigate to="/donor/chat" />
         ) : user.role === "recipient" ? (
           <Navigate to="/recipient/dashboard" />
         ) : (
@@ -112,7 +113,7 @@ function App() {
       path: "/register",
       element: user ? (
         user.role === "donor" ? (
-          <Navigate to="/donor/dashboard" />
+          <Navigate to="/donor/chat" />
         ) : user.role === "recipient" ? (
           <Navigate to="/recipient/dashboard" />
         ) : (
@@ -143,6 +144,7 @@ function App() {
         { path: "eligibility", element: <EligibilityChecker /> }, // ✅ ADD THIS ROUTE
         { path: "history/:id", element: <DonationHistory /> }, // ✅ ADD THIS ROUTE
         { path: "notifications", element: <Notifications /> },
+        { path: "chat", element: <Chat /> },
       ],
     },
 
@@ -161,6 +163,7 @@ function App() {
         { path: "create-request", element: <CreateBloodRequest /> }, // ✅ ADD THIS ROUTE
         { path: "search-donors", element: <SearchDonors /> },
         { path: "notifications", element: <Notifications /> },
+        { path: "chat", element: <Chat /> },
       ],
     },
   ]);
