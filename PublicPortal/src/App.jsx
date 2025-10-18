@@ -30,6 +30,7 @@ import Chat from "./pages/Chat";
 import DonorNavbar from "./components/DonorNavbar";
 import RecipientNavbar from "./components/RecipientNavbar";
 import PrivateRoute from "./components/PrivateRoute";
+import FloatingChatWidget from "./components/FloatingChatWidget";
 
 function App() {
   const user = useSelector((state) => state.user.currentUser);
@@ -40,6 +41,7 @@ function App() {
       <ScrollToTop />
       <DonorNavbar />
       <Outlet />
+      <FloatingChatWidget />
     </div>
   );
 
@@ -49,6 +51,7 @@ function App() {
       <ScrollToTop />
       <RecipientNavbar />
       <Outlet />
+      <FloatingChatWidget />
     </div>
   );
 
@@ -168,7 +171,12 @@ function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      
+    </>
+  );
 }
 
 export default App;

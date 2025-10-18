@@ -36,6 +36,8 @@
 - [ ] Advanced Search: Add filters/pagination to existing search pages
 - [ ] Real-time Notifications: Enhance NotificationBell with WebSocket/polling
 - [x] Real-time Chat System: Implement Socket.IO chat for donors, recipients, hospitals, and admins
+- [x] Remove ChatModal from HospitalDonors.jsx: Remove unused ChatModal import and related state from HospitalDonors.jsx
+- [x] Add FloatingChatWidget to both App.jsx files: Implement role-based logic for chat widget visibility across all pages
 
 ## Features to Enhance
 - [ ] Add pagination to lists (donors, requests, etc.)

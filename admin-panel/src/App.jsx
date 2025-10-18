@@ -27,6 +27,7 @@ import Chat from './pages/Chat';
 import Menu from './components/Menu';
 import HospitalNavbar from './components/HospitalNavbar';
 import PrivateRoute from './components/PrivateRoute';
+import FloatingChatWidget from './components/FloatingChatWidget';
 
 function App() {
   const user = useSelector((state) => state.user.currentUser);
@@ -38,6 +39,7 @@ function App() {
       <div className="flex-1 p-4">
         <ScrollToTop />
         <Outlet />
+        <FloatingChatWidget />
       </div>
     </div>
   );
@@ -49,6 +51,7 @@ function App() {
       <div className="p-4">
         <ScrollToTop />
         <Outlet />
+        <FloatingChatWidget />
       </div>
     </div>
   );
@@ -134,7 +137,12 @@ function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+     
+    </>
+  );
 }
 
 export default App;

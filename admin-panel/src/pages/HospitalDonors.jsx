@@ -4,7 +4,6 @@ import { publicRequest } from '../requestMethods';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaSearch, FaMapMarkerAlt, FaPhone, FaEnvelope, FaTint, FaUser, FaComments } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
-import ChatModal from '../components/ChatModal';
 
 const HospitalDonors = () => {
   const user = useSelector((state) => state.user.currentUser);
@@ -15,7 +14,7 @@ const HospitalDonors = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [bloodGroupFilter, setBloodGroupFilter] = useState('all');
   const [radius, setRadius] = useState(50);
-  const [chatModal, setChatModal] = useState({ isOpen: false, recipientId: null, recipientName: '', recipientRole: '' });
+
 
   useEffect(() => {
     fetchLocalDonors();
@@ -248,17 +247,6 @@ const HospitalDonors = () => {
 
                   <div className="mt-4 flex gap-2">
                     <button
-                      onClick={() => setChatModal({
-                        isOpen: true,
-                        recipientId: donor._id,
-                        recipientName: donor.name,
-                        recipientRole: 'donor'
-                      })}
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                    >
-                      <FaComments /> Message
-                    </button>
-                    <button
                       onClick={() => window.location.href = `tel:${donor.phone}`}
                       className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors"
                     >
@@ -273,14 +261,7 @@ const HospitalDonors = () => {
 
         <ToastContainer />
 
-        {/* Chat Modal */}
-        <ChatModal
-          isOpen={chatModal.isOpen}
-          onClose={() => setChatModal({ isOpen: false, recipientId: null, recipientName: '', recipientRole: '' })}
-          recipientId={chatModal.recipientId}
-          recipientName={chatModal.recipientName}
-          recipientRole={chatModal.recipientRole}
-        />
+
       </div>
     </div>
   );
