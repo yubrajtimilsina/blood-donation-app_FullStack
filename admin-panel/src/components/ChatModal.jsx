@@ -3,7 +3,11 @@ import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import { publicRequest } from '../requestMethods';
 
-const ChatModal = ({ isOpen, onClose, recipientId, recipientName, recipientRole }) => {
+const ChatModal = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [recipientId, setRecipientId] = useState(null);
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientRole, setRecipientRole] = useState('');
   const user = useSelector((state) => state.user.currentUser);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -53,6 +57,28 @@ const ChatModal = ({ isOpen, onClose, recipientId, recipientName, recipientRole 
       };
     }
   }, [isOpen, user, recipientId, chatId]);
+
+  // Listen for modal open events
+  useEffect(() => {
+    const handleModalOpen = (event) => {
+      const { recipientId: id, recipientName: name, recipientRole: role } = event.detail;
+      setRecipientId(id);
+      setRecipientName(name);
+      setRecipientRole(role);
+      setIsOpen(true);
+    };
+
+    const modalElement = document.querySelector('[data-chat-modal]');
+    if (modalElement) {
+      modalElement.addEventListener('openChatModal', handleModalOpen);
+    }
+
+    return () => {
+      if (modalElement) {
+        modalElement.removeEventListener('openChatModal', handleModalOpen);
+      }
+    };
+  }, []);
 
   // Create or get existing chat
   const createOrGetChat = async () => {
@@ -122,7 +148,7 @@ const ChatModal = ({ isOpen, onClose, recipientId, recipientName, recipientRole 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-chat-modal>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl h-3/4 flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
@@ -136,7 +162,7 @@ const ChatModal = ({ isOpen, onClose, recipientId, recipientName, recipientRole 
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={() => setIsOpen(false)}
             className="text-gray-400 hover:text-gray-600 text-xl"
           >
             ×

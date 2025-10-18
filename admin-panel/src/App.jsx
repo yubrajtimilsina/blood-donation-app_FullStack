@@ -28,6 +28,7 @@ import Menu from './components/Menu';
 import HospitalNavbar from './components/HospitalNavbar';
 import PrivateRoute from './components/PrivateRoute';
 import FloatingChatWidget from './components/FloatingChatWidget';
+import ChatModal from './components/ChatModal';
 
 function App() {
   const user = useSelector((state) => state.user.currentUser);
@@ -140,7 +141,7 @@ function App() {
   return (
     <>
       <RouterProvider router={router} />
-     
+      <ChatModal />
     </>
   );
 }

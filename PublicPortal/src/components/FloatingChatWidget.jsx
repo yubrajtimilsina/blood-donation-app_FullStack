@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { FaComments, FaTimes, FaUser, FaHospital, FaSearch } from 'react-icons/fa';
+import { publicRequest } from '../requestMethods';
 import ChatModal from './ChatModal';
 
 const FloatingChatWidget = () => {
