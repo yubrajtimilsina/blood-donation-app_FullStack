@@ -8,10 +8,10 @@ const {
   sendMessage,
   markAsRead,
   getUnreadCount,
-  deleteChat
+  deleteChat,
+  getRecipientByUserId // ADD THIS
 } = require('../controllers/chat');
 
-// All routes require authentication
 router.use(verifyToken);
 
 // Create or get chat
@@ -22,6 +22,9 @@ router.get('/', getUserChats);
 
 // Get unread count
 router.get('/unread-count', getUnreadCount);
+
+// Get recipient info (for starting chat)
+router.get('/recipient/:userId', getRecipientByUserId);
 
 // Get single chat
 router.get('/:chatId', getChat);

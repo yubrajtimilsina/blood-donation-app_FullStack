@@ -309,6 +309,31 @@ const deleteChat = async (req, res) => {
   }
 };
 
+const getRecipientByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const recipient = await Recipient.findOne({ userId });
+    
+    if (!recipient) {
+      return res.status(404).json({
+        success: false,
+        message: 'Recipient profile not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: recipient
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch recipient',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createChat,
   getUserChats,
@@ -316,5 +341,6 @@ module.exports = {
   sendMessage,
   markAsRead,
   getUnreadCount,
-  deleteChat
+  deleteChat,
+  getRecipientByUserId
 };
