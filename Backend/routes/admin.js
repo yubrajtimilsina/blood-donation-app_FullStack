@@ -9,7 +9,10 @@ const {
   updateUser,
   deleteUser,
   verifyUser,
-  getSystemAnalytics
+  getSystemAnalytics,
+  getBloodInventoryStatus,
+  getDonorsByLocation,
+  getRequestFulfillmentRate
 } = require('../controllers/admin');
 
 // All admin routes require admin authentication
@@ -27,5 +30,8 @@ router.put('/users/:userId/verify', verifyUser);
 
 // System analytics
 router.get('/analytics', getSystemAnalytics);
+router.get('/analytics/blood-inventory', getBloodInventoryStatus);
+router.get('/analytics/donors-location', getDonorsByLocation);
+router.get('/analytics/request-fulfillment', getRequestFulfillmentRate);
 
 module.exports = router;

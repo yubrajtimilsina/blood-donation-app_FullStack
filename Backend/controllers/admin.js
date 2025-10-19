@@ -306,11 +306,109 @@ const getSystemAnalytics = async (req, res) => {
   }
 };
 
+
+// Blood inventory status across hospitals
+const getBloodInventoryStatus = async (req, res) => {
+  try {
+    const inventories = await Hospital.aggregate([
+      {
+        $project: {
+          name: 1,
+          'A+': '$bloodInventory.A+',
+          'A-': '$bloodInventory.A-',
+          'B+': '$bloodInventory.B+',
+          'B-': '$bloodInventory.B-',
+          'AB+': '$bloodInventory.AB+',
+          'AB-': '$bloodInventory.AB-',
+          'O+': '$bloodInventory.O+',
+          'O-': '$bloodInventory.O-'
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: inventories
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch inventory status',
+      error: error.message
+    });
+  }
+};
+
+// Donor statistics by location
+const getDonorsByLocation = async (req, res) => {
+  try {
+    const stats = await Donor.aggregate([
+      {
+        $group: {
+          _id: '$address',
+          totalDonors: { $sum: 1 },
+          availableDonors: {
+            $sum: { $cond: ['$isAvailable', 1, 0] }
+          }
+        }
+      },
+      { $sort: { totalDonors: -1 } }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch donor location stats',
+      error: error.message
+    });
+  }
+};
+
+// Request fulfillment rate
+const getRequestFulfillmentRate = async (req, res) => {
+  try {
+    const stats = await BloodRequest.aggregate([
+      {
+        $facet: {
+          total: [{ $count: 'count' }],
+          fulfilled: [{ $match: { status: 'fulfilled' } }, { $count: 'count' }],
+          pending: [{ $match: { status: 'pending' } }, { $count: 'count' }],
+          cancelled: [{ $match: { status: 'cancelled' } }, { $count: 'count' }]
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        total: stats[0].total[0]?.count || 0,
+        fulfilled: stats[0].fulfilled[0]?.count || 0,
+        pending: stats[0].pending[0]?.count || 0,
+        cancelled: stats[0].cancelled[0]?.count || 0
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch fulfillment rate',
+      error: error.message
+    });
+  }
+};
+
+// Add to admin routes
 module.exports = {
   getDashboardStats,
   getAllUsers,
   updateUser,
   deleteUser,
   verifyUser,
-  getSystemAnalytics
+  getSystemAnalytics,
+  getBloodInventoryStatus,  // ADD
+  getDonorsByLocation,      // ADD
+  getRequestFulfillmentRate // ADD
 };
