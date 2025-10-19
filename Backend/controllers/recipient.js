@@ -183,10 +183,74 @@ const verifyRecipient = async (req, res) => {
   }
 };
 
+
+// Get My Recipient Profile
+const getMyRecipientProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    console.log('🔍 Fetching recipient profile for userId:', userId);
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    if (user.role !== 'recipient') {
+      return res.status(403).json({
+        success: false,
+        message: "User is not registered as a recipient"
+      });
+    }
+
+    let recipient = await Recipient.findOne({ userId })
+      .populate('userId', 'name email verified');
+
+    // ✅ Auto-create if doesn't exist
+    if (!recipient) {
+      console.log('⚠️ Recipient profile not found, creating new one...');
+      
+      recipient = new Recipient({
+        userId: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone || "",
+        address: "Not provided",
+        location: { type: 'Point', coordinates: [0, 0] },
+        emergencyContact: { name: "", phone: "" }
+      });
+
+      await recipient.save();
+      
+      user.recipientProfile = recipient._id;
+      await user.save();
+      
+      console.log('✅ New recipient profile created:', recipient._id);
+    }
+
+    res.status(200).json({
+      success: true,
+      data: recipient
+    });
+  } catch (error) {
+    console.error('❌ Error fetching recipient profile:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch recipient profile",
+      error: error.message
+    });
+  }
+};
+
+// Add to module.exports:
 module.exports = {
   createRecipientProfile,
   getRecipientProfile,
   updateRecipientProfile,
   getAllRecipients,
-  verifyRecipient
+  verifyRecipient,
+  getMyRecipientProfile // ADD THIS
 };

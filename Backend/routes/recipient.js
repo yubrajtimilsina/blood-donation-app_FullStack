@@ -5,6 +5,7 @@ const {
   updateRecipientProfile,
   getAllRecipients,
   verifyRecipient,
+  getMyRecipientProfile,
 } = require('../controllers/recipient');
 const { verifyToken } = require('../middlewares/verifyToken');
 const { checkRole } = require('../middlewares/roleCheck');
@@ -16,6 +17,8 @@ router.post('/profile', verifyToken, checkRole('recipient', 'admin'), createReci
 // Get recipient profile (current user or by ID)
 router.get('/profile', verifyToken, getRecipientProfile);
 router.get('/profile/:userId', verifyToken, getRecipientProfile);
+
+router.get('/me/profile', verifyToken, checkRole('recipient', 'admin'), getMyRecipientProfile);
 
 // Update recipient profile
 router.put('/profile', verifyToken, checkRole('recipient', 'admin'), updateRecipientProfile);
