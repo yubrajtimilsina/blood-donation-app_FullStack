@@ -1,5 +1,6 @@
 const Chat = require('../models/Chat');
 const User = require('../models/User');
+const Recipient = require('../models/Recipient');
 
 // Store online users (this should be moved to a better place)
 const onlineUsers = new Map();
@@ -312,8 +313,8 @@ const deleteChat = async (req, res) => {
 const getRecipientByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-    const recipient = await Recipient.findOne({ userId });
-    
+    const recipient = await Recipient.findOne({ userId }).populate('userId', 'name email role');
+
     if (!recipient) {
       return res.status(404).json({
         success: false,

@@ -28,18 +28,24 @@ const RecipientProfile = () => {
 
   const fetchProfile = async () => {
     try {
+      // Use /me endpoint for current user's profile
       const res = await publicRequest.get(`/recipients/profile`, {
         headers: { token: `Bearer ${user.accessToken}` }
       });
+      
       setFormData({
-        name: res.data.data.name || '',
-        email: res.data.data.email || '',
-        phone: res.data.data.phone || '',
-        address: res.data.data.address || '',
-        emergencyContact: res.data.data.emergencyContact || { name: '', phone: '' }
+        name: res.data.data?.name || '',
+        email: res.data.data?.email || '',
+        phone: res.data.data?.phone || '',
+        address: res.data.data?.address || '',
+        emergencyContact: res.data.data?.emergencyContact || { name: '', phone: '' }
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
+      // Auto-create profile if doesn't exist
+      if (error.response?.status === 404) {
+        toast.info('Creating your profile...');
+      }
       toast.error('Failed to load profile');
     } finally {
       setLoading(false);

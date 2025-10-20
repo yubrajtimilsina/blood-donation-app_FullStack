@@ -44,6 +44,13 @@ const userSchema = mongoose.Schema({
   lastLogin: {
     type: Date
   },
+  // Password reset fields
+  resetPasswordToken: {
+    type: String
+  },
+  resetPasswordExpires: {
+    type: Date
+  },
   // Reference to role-specific profile
   donorProfile: {
     type: mongoose.Schema.Types.ObjectId,

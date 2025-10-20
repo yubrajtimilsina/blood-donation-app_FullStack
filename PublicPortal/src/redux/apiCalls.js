@@ -64,3 +64,36 @@ export const getHospitals = async () => {
 export const getNotifications = async () => {
   return userRequest.get("/notifications");
 };
+
+// Recipient API calls
+export const getRecipientProfile = async (token) => {
+  return publicRequest.get("/recipients/profile", {
+    headers: { token: `Bearer ${token}` }
+  });
+};
+
+export const updateRecipientProfile = async (profileData, token) => {
+  return publicRequest.put("/recipients/profile", profileData, {
+    headers: { token: `Bearer ${token}` }
+  });
+};
+
+export const createRecipientProfile = async (profileData, token) => {
+  return publicRequest.post("/recipients/profile", profileData, {
+    headers: { token: `Bearer ${token}` }
+  });
+};
+
+
+// Blood Request API calls
+export const getNearbyRequests = async (radius, token) => {
+  return publicRequest.get(`/bloodRequests/nearby?radius=${radius}`, {
+    headers: { token: `Bearer ${token}` }
+  });
+};
+
+export const getMyRequests = async (userId, token) => {
+  return publicRequest.get(`/bloodRequests?createdBy=${userId}`, {
+    headers: { token: `Bearer ${token}` }
+  });
+};

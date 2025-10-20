@@ -4,6 +4,7 @@ const Donor = require("../models/Donor");
 const Recipient = require("../models/Recipient");
 const Hospital = require("../models/Hospital");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -78,6 +79,10 @@ const registerUser = async (req, res) => {
         phone: phone || "",
         address: req.body.address || "",
         licenseNumber: req.body.licenseNumber || "",
+        bloodInventory: {
+          'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0,
+          'AB+': 0, 'AB-': 0, 'O+': 0, 'O-': 0
+        }
       });
       const savedHospital = await hospitalProfile.save();
       savedUser.hospitalProfile = savedHospital._id;
@@ -103,6 +108,7 @@ const registerUser = async (req, res) => {
 };
 
 // LOGIN - FIXED
+// FIXED LOGIN RESPONSE
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -139,11 +145,9 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Update last login
     user.lastLogin = new Date();
     await user.save();
 
-    // Generate token with role
     const accessToken = jwt.sign(
       {
         id: user._id,
@@ -154,9 +158,9 @@ const loginUser = async (req, res) => {
       { expiresIn: "30d" }
     );
 
-    const { password: _, ...info } = user._doc;
+    const { password: _, ...userInfo } = user._doc;
 
-    // FIXED: Return consistent response structure
+    // ✅ CONSISTENT RESPONSE STRUCTURE
     res.status(200).json({
       success: true,
       _id: user._id,
@@ -267,9 +271,111 @@ const updatePassword = async (req, res) => {
   }
 };
 
+// FORGOT PASSWORD
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return res.status(200).json({
+        success: true,
+        message: "If an account with that email exists, a password reset link has been sent.",
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Set token and expiry (1 hour)
+    user.resetPasswordToken = resetTokenHash;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    // For now, just return the token in response (in production, send via email)
+    // TODO: Integrate email service (e.g., Nodemailer with SendGrid/Mailgun)
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+
+    console.log('Password reset token generated for:', email);
+    console.log('Reset URL:', resetUrl);
+
+    res.status(200).json({
+      success: true,
+      message: "If an account with that email exists, a password reset link has been sent.",
+      // In development, include the reset URL for testing
+      ...(process.env.NODE_ENV === 'development' && { resetUrl, resetToken })
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to process password reset request",
+      error: error.message,
+    });
+  }
+};
+
+// RESET PASSWORD
+const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Token and new password are required",
+      });
+    }
+
+    // Hash the token to compare with stored hash
+    const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken: resetTokenHash,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    // Update password
+    user.password = CryptoJS.AES.encrypt(newPassword, process.env.PASS_SEC).toString();
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to reset password",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getCurrentUser,
   updatePassword,
+  forgotPassword,
+  resetPassword,
 };

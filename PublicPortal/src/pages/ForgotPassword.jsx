@@ -24,13 +24,12 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
-      // Note: This would need backend implementation
-      // await publicRequest.post('/auth/forgot-password', { email });
-      toast.success('Password reset link sent to your email!');
+      const response = await publicRequest.post('/auth/forgot-password', { email });
+      toast.success(response.data.message);
       setEmailSent(true);
     } catch (error) {
       console.error('Forgot password error:', error);
-      toast.error('Failed to send reset email. Please try again.');
+      toast.error(error.response?.data?.message || 'Failed to send reset email. Please try again.');
     } finally {
       setLoading(false);
     }
