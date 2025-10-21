@@ -6,6 +6,7 @@ const { checkRole } = require('../middlewares/roleCheck');
 const {
   getDashboardStats,
   getAllUsers,
+  getAllUsersForChat,
   updateUser,
   deleteUser,
   verifyUser,
@@ -24,6 +25,7 @@ router.get('/stats', getDashboardStats);
 
 // User management
 router.get('/users', getAllUsers);
+router.get('/users/chat', getAllUsersForChat);
 router.put('/users/:userId', updateUser);
 router.delete('/users/:userId', deleteUser);
 router.put('/users/:userId/verify', verifyUser);

@@ -62,7 +62,8 @@ const Menu = () => {
     {
       section: "System",
       items: [
-        { path: "/admin/users", icon: FaUserShield, label: "Users", primary: true }
+        { path: "/admin/users", icon: FaUserShield, label: "Users", primary: true },
+        { path: "/admin/chat", icon: FaUsers, label: "Chat", primary: true }
       ]
     }
   ];

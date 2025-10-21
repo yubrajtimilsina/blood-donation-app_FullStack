@@ -401,10 +401,52 @@ const getRequestFulfillmentRate = async (req, res) => {
   }
 };
 
+// Get all users for chat functionality
+const getAllUsersForChat = async (req, res) => {
+  try {
+    const { role, search, page = 1, limit = 50 } = req.query;
+
+    const filter = {};
+    if (role) filter.role = role;
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const users = await User.find(filter)
+      .select('name email role profileImage verified')
+      .sort({ name: 1 })
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit));
+
+    const total = await User.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      data: users,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch users for chat',
+      error: error.message
+    });
+  }
+};
+
 // Add to admin routes
 module.exports = {
   getDashboardStats,
   getAllUsers,
+  getAllUsersForChat,
   updateUser,
   deleteUser,
   verifyUser,

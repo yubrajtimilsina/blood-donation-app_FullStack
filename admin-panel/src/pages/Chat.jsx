@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+ import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import { userRequest } from '../requestMethods';
@@ -165,13 +165,84 @@ const Chat = () => {
     }
   };
 
+  // Fetch all users for starting new chats
+  const [allUsers, setAllUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showUserList, setShowUserList] = useState(false);
+
+  const fetchAllUsers = async () => {
+    try {
+      const res = await userRequest.get('/admin/users/chat');
+      setAllUsers(res.data.data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      fetchAllUsers();
+    }
+  }, [user]);
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Chat List Sidebar */}
       <div className="w-1/3 bg-white border-r border-gray-200">
         <div className="p-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-800">Messages</h2>
+          {user?.role === 'admin' && (
+            <button
+              onClick={() => setShowUserList(!showUserList)}
+              className="mt-2 w-full px-3 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Start New Chat
+            </button>
+          )}
         </div>
+
+        {/* User List for New Chats (Admin Only) */}
+        {showUserList && user?.role === 'admin' && (
+          <div className="p-4 border-b border-gray-200 bg-gray-50">
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+            />
+            <div className="max-h-40 overflow-y-auto">
+              {allUsers
+                .filter(u =>
+                  u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  u.email.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .filter(u => u._id !== user._id) // Exclude self
+                .map((u) => (
+                  <div
+                    key={u._id}
+                    onClick={() => {
+                      createNewChat(u._id);
+                      setShowUserList(false);
+                      setSearchTerm('');
+                    }}
+                    className="p-2 hover:bg-gray-200 cursor-pointer rounded-lg mb-1"
+                  >
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                        {u.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="ml-2">
+                        <p className="font-medium text-sm">{u.name}</p>
+                        <p className="text-xs text-gray-500">{u.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
         <div className="overflow-y-auto h-full">
           {chats.map((chat) => {
             const otherParticipant = chat.participants.find(p => p.userId._id !== user._id);

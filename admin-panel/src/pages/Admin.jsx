@@ -1,7 +1,7 @@
 import { Gauge } from "@mui/x-charts/Gauge";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { PieChart } from "@mui/x-charts/PieChart";
-import { FaUser, FaTint, FaUsers, FaHeart, FaChartBar } from "react-icons/fa";
+import { FaUser, FaTint, FaUsers, FaHeart, FaChartBar, FaComments } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { publicRequest } from "../requestMethods";
 import { logout } from "../redux/userRedux";
@@ -107,8 +107,8 @@ const Admin = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
-          
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6 mb-6">
+
           {/* Total Donors Card */}
           <div className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between">
@@ -167,6 +167,22 @@ const Admin = () => {
               </div>
               <div className="p-3 bg-purple-100 rounded-full">
                 <FaChartBar className="text-purple-600 text-xl" />
+              </div>
+            </div>
+          </div>
+
+          {/* Chat Access Card */}
+          <div className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-200 cursor-pointer" onClick={() => navigate('/admin/chat')}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Messages</p>
+                <p className="text-2xl lg:text-3xl font-bold text-indigo-600">
+                  Chat
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Communicate with users</p>
+              </div>
+              <div className="p-3 bg-indigo-100 rounded-full">
+                <FaComments className="text-indigo-600 text-xl" />
               </div>
             </div>
           </div>
