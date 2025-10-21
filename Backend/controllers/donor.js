@@ -55,7 +55,7 @@ const createDonor = async (req, res) => {
 const getAlldonors = async (req, res) => {
     try {
         const { bloodgroup, isAvailable, search } = req.query;
-        
+
         const filter = {};
         if (bloodgroup) filter.bloodgroup = bloodgroup;
         if (isAvailable !== undefined) filter.isAvailable = isAvailable === 'true';
@@ -69,7 +69,7 @@ const getAlldonors = async (req, res) => {
         const donors = await Donor.find(filter)
             .populate('userId', 'name email verified')
             .sort({ createdAt: -1 });
-            
+
         res.status(200).json(donors);
     } catch (error) {
         res.status(500).json({

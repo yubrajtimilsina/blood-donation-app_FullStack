@@ -20,17 +20,20 @@ let configuration = {
     }
 };
 
-const sendMail = async (messageOptions) => {
-    const transporter = createTransporter(configuration);
-    await transporter.verify();
-    await transporter.sendMail(messageOptions, (err, info) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log('Email sent: ' + info.response);
-        }
+const sendMail = (messageOptions) => {
+    return new Promise((resolve, reject) => {
+        const transporter = createTransporter(configuration);
+        transporter.verify().then(() => {
+            transporter.sendMail(messageOptions, (err, info) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(info);
+                }
+            });
+        }).catch(reject);
     });
-};  
+};
 
 module.exports = sendMail;
 

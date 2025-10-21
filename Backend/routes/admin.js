@@ -13,7 +13,10 @@ const {
   getSystemAnalytics,
   getBloodInventoryStatus,
   getDonorsByLocation,
-  getRequestFulfillmentRate
+  getRequestFulfillmentRate,
+  sendBloodDonationReminders,
+  sendMessageToAllRecipients,
+  sendMessageToAllDonors
 } = require('../controllers/admin');
 
 // All admin routes require admin authentication
@@ -35,5 +38,12 @@ router.get('/analytics', getSystemAnalytics);
 router.get('/analytics/blood-inventory', getBloodInventoryStatus);
 router.get('/analytics/donors-location', getDonorsByLocation);
 router.get('/analytics/request-fulfillment', getRequestFulfillmentRate);
+
+// Blood donation reminders
+router.post('/send-reminders', sendBloodDonationReminders);
+
+// Bulk messaging
+router.post('/send-message/recipients', sendMessageToAllRecipients);
+router.post('/send-message/donors', sendMessageToAllDonors);
 
 module.exports = router;

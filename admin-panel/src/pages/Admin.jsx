@@ -73,6 +73,17 @@ const Admin = () => {
     navigate("/login");
   };
 
+  const handleSendReminders = async () => {
+    try {
+      const headers = user?.accessToken ? { headers: { token: `Bearer ${user.accessToken}` } } : {};
+      const response = await publicRequest.post("/admin/send-reminders", { bloodType: "O-" }, headers);
+      alert(`Reminders sent successfully! ${response.data.data.sent} donors notified.`);
+    } catch (error) {
+      console.error("Error sending reminders:", error);
+      alert("Failed to send reminders. Please try again.");
+    }
+  };
+
   const monthlyData = monthly;
 
   if (loading) {
@@ -342,7 +353,10 @@ const Admin = () => {
               <p className="text-sm opacity-90 mb-4">
                 O- blood type is running low. Consider sending reminder emails to eligible donors.
               </p>
-              <button className="bg-white text-red-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors duration-200">
+              <button
+                onClick={handleSendReminders}
+                className="bg-white text-red-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors duration-200"
+              >
                 Send Reminders
               </button>
             </div>

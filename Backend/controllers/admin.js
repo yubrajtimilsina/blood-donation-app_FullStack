@@ -442,6 +442,267 @@ const getAllUsersForChat = async (req, res) => {
   }
 };
 
+// Send blood donation reminders to eligible donors
+const sendBloodDonationReminders = async (req, res) => {
+  try {
+    const { bloodType, minDays = 90 } = req.body;
+
+    // Build filter for donors
+    const donorFilter = { isAvailable: true }; // Only send to available donors
+
+    // If specific blood type is requested
+    if (bloodType) {
+      donorFilter.bloodgroup = bloodType;
+    }
+
+    // Find all available donors (we'll check eligibility in the loop for backward compatibility)
+    const donors = await Donor.find(donorFilter);
+
+    if (donors.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: `No available donors found for blood type ${bloodType || 'all types'}`,
+        data: { sent: 0, total: 0 }
+      });
+    }
+
+    let sentCount = 0;
+    const today = new Date();
+
+    // Import email service
+    const ejs = require('ejs');
+    const path = require('path');
+    const sendMail = require('../../BackgroundServices/helpers/sendmail');
+
+    for (let donor of donors) {
+      try {
+        // Check eligibility
+        let isEligible = true;
+
+        if (donor.nextEligibleDate && donor.nextEligibleDate > today) {
+          isEligible = false;
+        } else if (donor.lastDonationDate) {
+          // If lastDonationDate exists but nextEligibleDate is null, calculate it
+          const nextDate = new Date(donor.lastDonationDate);
+          nextDate.setDate(nextDate.getDate() + 90);
+          if (nextDate > today) {
+            isEligible = false;
+          }
+        } else if (donor.date) {
+          // Fallback to old date field
+          const donorDate = new Date(donor.date);
+          const diffTime = Math.abs(today - donorDate);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          if (diffDays < minDays) {
+            isEligible = false;
+          }
+        }
+        // If no date fields, assume eligible
+
+        if (!isEligible) continue;
+
+        // Send reminder email
+        try {
+          const templatePath = path.join(__dirname, '../../BackgroundServices/templates/BloodDonationReminder.ejs');
+          const html = await new Promise((resolve, reject) => {
+            ejs.renderFile(
+              templatePath,
+              {
+                name: donor.name,
+                date: (donor.lastDonationDate || donor.date || 'N/A').toString().split('T')[0],
+              },
+              (err, data) => {
+                if (err) {
+                  console.error('EJS render error:', err);
+                  reject(err);
+                } else {
+                  resolve(data);
+                }
+              }
+            );
+          });
+
+          let messageoptions = {
+            from: process.env.EMAIL_USER,
+            to: donor.email,
+            subject: `Urgent: ${bloodType || 'Blood'} Donation Needed - Your Help Matters`,
+            html: html,
+          };
+
+          await sendMail(messageoptions);
+          sentCount++;
+
+        } catch (emailError) {
+          console.error('Email send error for donor:', donor.email, emailError);
+          // Continue with next donor instead of failing completely
+        }
+      } catch (error) {
+        console.error(`Error processing donor ${donor.email}:`, error);
+        // Continue with next donor
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Blood donation reminders sent successfully to ${sentCount} donors`,
+      data: {
+        sent: sentCount,
+        total: donors.length,
+        bloodType: bloodType || 'all'
+      }
+    });
+  } catch (error) {
+    console.error('Send reminders error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send blood donation reminders',
+      error: error.message
+    });
+  }
+};
+
+// Send message to all recipients
+const sendMessageToAllRecipients = async (req, res) => {
+  try {
+    const { title, message, priority = 'medium' } = req.body;
+
+    if (!title || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and message are required'
+      });
+    }
+
+    // Get all recipient user IDs
+    const recipients = await Recipient.find({}, 'userId');
+    const recipientUserIds = recipients.map(r => r.userId).filter(id => id);
+
+    if (recipientUserIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No recipients found to send message to',
+        data: { sent: 0, total: 0 }
+      });
+    }
+
+    // Create bulk notifications
+    const notifications = recipientUserIds.map(userId => ({
+      userId,
+      type: 'system',
+      title,
+      message,
+      priority,
+      actionUrl: '/recipient/dashboard'
+    }));
+
+    const createdNotifications = await Notification.insertMany(notifications);
+
+    // Emit socket events to all recipients
+    if (global.io) {
+      recipientUserIds.forEach(userId => {
+        global.io.to(`user-${userId}`).emit('newNotification', {
+          notification: {
+            type: 'system',
+            title,
+            message,
+            priority,
+            actionUrl: '/recipient/dashboard'
+          },
+          timestamp: new Date()
+        });
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Message sent successfully to ${recipientUserIds.length} recipients`,
+      data: {
+        sent: recipientUserIds.length,
+        total: recipientUserIds.length,
+        notifications: createdNotifications.length
+      }
+    });
+  } catch (error) {
+    console.error('Send message to recipients error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send message to recipients',
+      error: error.message
+    });
+  }
+};
+
+// Send message to all donors
+const sendMessageToAllDonors = async (req, res) => {
+  try {
+    const { title, message, priority = 'medium' } = req.body;
+
+    if (!title || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and message are required'
+      });
+    }
+
+    // Get all donor user IDs
+    const donors = await Donor.find({}, 'userId');
+    const donorUserIds = donors.map(d => d.userId).filter(id => id);
+
+    if (donorUserIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No donors found to send message to',
+        data: { sent: 0, total: 0 }
+      });
+    }
+
+    // Create bulk notifications
+    const notifications = donorUserIds.map(userId => ({
+      userId,
+      type: 'system',
+      title,
+      message,
+      priority,
+      actionUrl: '/donor/dashboard'
+    }));
+
+    const createdNotifications = await Notification.insertMany(notifications);
+
+    // Emit socket events to all donors
+    if (global.io) {
+      donorUserIds.forEach(userId => {
+        global.io.to(`user-${userId}`).emit('newNotification', {
+          notification: {
+            type: 'system',
+            title,
+            message,
+            priority,
+            actionUrl: '/donor/dashboard'
+          },
+          timestamp: new Date()
+        });
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Message sent successfully to ${donorUserIds.length} donors`,
+      data: {
+        sent: donorUserIds.length,
+        total: donorUserIds.length,
+        notifications: createdNotifications.length
+      }
+    });
+  } catch (error) {
+    console.error('Send message to donors error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send message to donors',
+      error: error.message
+    });
+  }
+};
+
 // Add to admin routes
 module.exports = {
   getDashboardStats,
@@ -453,5 +714,8 @@ module.exports = {
   getSystemAnalytics,
   getBloodInventoryStatus,  // ADD
   getDonorsByLocation,      // ADD
-  getRequestFulfillmentRate // ADD
+  getRequestFulfillmentRate, // ADD
+  sendBloodDonationReminders,
+  sendMessageToAllRecipients, // ADD
+  sendMessageToAllDonors      // ADD
 };

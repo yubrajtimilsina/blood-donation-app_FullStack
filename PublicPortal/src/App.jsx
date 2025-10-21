@@ -1,7 +1,8 @@
-// PublicPortal/src/App.jsx
 import { RouterProvider, createBrowserRouter, Outlet, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useEffect } from "react";
 import ScrollToTop from "./components/ScrollToTop";
+import { useSocket } from "./hooks/useSocket";
 
 // Pages
 import Home from "./pages/Home";
@@ -12,7 +13,6 @@ import Register from "./pages/Register";
 import DonorDashboard from "./pages/DonorDashboard";
 import DonorProfile from "./pages/DonorProfile";
 import DonorPortal from "./pages/DonorPortal";
-
 import NearbyRequests from "./pages/NearbyRequests";
 import RecipientDashboard from "./pages/RecipientDashboard";
 import RecipientProfile from "./pages/RecipientProfile";
@@ -22,6 +22,7 @@ import Notifications from "./pages/Notifications";
 import CreateBloodRequest from "./pages/CreateBloodRequest";
 import DonationHistory from "./pages/DonationHistory";
 import EligibilityChecker from "./pages/EligibilityChecker";
+import RequestDetails from "./pages/RequestDetails";
 import Contact from "./components/Contact";
 import ForgotPassword from "./pages/ForgotPassword";
 import Chat from "./pages/Chat";
@@ -36,13 +37,22 @@ import ChatModal from "./components/ChatModal";
 function App() {
   const user = useSelector((state) => state.user.currentUser);
 
+  // ✅ Initialize Socket.IO connection globally
+  const { isConnected, socket } = useSocket(user);
+
+  useEffect(() => {
+    if (isConnected) {
+      console.log("✅ Socket connected in App.jsx");
+    }
+  }, [isConnected]);
+
   // Donor layout wrapper
   const DonorLayout = () => (
     <div className="min-h-screen">
       <ScrollToTop />
       <DonorNavbar />
       <Outlet />
-      <FloatingChatWidget />
+      <FloatingChatWidget socket={socket} />
     </div>
   );
 
@@ -52,7 +62,7 @@ function App() {
       <ScrollToTop />
       <RecipientNavbar />
       <Outlet />
-      <FloatingChatWidget />
+      <FloatingChatWidget socket={socket} />
     </div>
   );
 
@@ -67,33 +77,10 @@ function App() {
         </>
       ),
     },
-    {
-      path: "/about",
-      element: (
-        <>
-          <ScrollToTop />
-          <About />
-        </>
-      ),
-    },
-    {
-      path: "/faq",
-      element: (
-        <>
-          <ScrollToTop />
-          <FAQ />
-        </>
-      ),
-    },
-    {
-      path: "/contact",
-      element: (
-        <>
-          <ScrollToTop />
-          <Contact />
-        </>
-      ),
-    },
+    { path: "/about", element: <About /> },
+    { path: "/faq", element: <FAQ /> },
+    { path: "/contact", element: <Contact /> },
+    { path: "/forgot-password", element: <ForgotPassword /> },
 
     // Auth routes
     {
@@ -107,10 +94,7 @@ function App() {
           <Navigate to="/" />
         )
       ) : (
-        <>
-          <ScrollToTop />
-          <Login />
-        </>
+        <Login />
       ),
     },
     {
@@ -124,10 +108,7 @@ function App() {
           <Navigate to="/" />
         )
       ) : (
-        <>
-          <ScrollToTop />
-          <Register />
-        </>
+        <Register />
       ),
     },
 
@@ -143,10 +124,9 @@ function App() {
         { path: "dashboard", element: <DonorDashboard /> },
         { path: "profile/:id", element: <DonorProfile /> },
         { path: "portal/:id", element: <DonorPortal /> },
-
         { path: "nearby-requests", element: <NearbyRequests /> },
-        { path: "eligibility", element: <EligibilityChecker /> }, // ✅ ADD THIS ROUTE
-        { path: "history/:id", element: <DonationHistory /> }, // ✅ ADD THIS ROUTE
+        { path: "eligibility", element: <EligibilityChecker /> },
+        { path: "history/:id", element: <DonationHistory /> },
         { path: "notifications", element: <Notifications /> },
         { path: "chat", element: <Chat /> },
       ],
@@ -164,7 +144,8 @@ function App() {
         { path: "dashboard", element: <RecipientDashboard /> },
         { path: "profile", element: <RecipientProfile /> },
         { path: "my-requests", element: <MyRequests /> },
-        { path: "create-request", element: <CreateBloodRequest /> }, // ✅ ADD THIS ROUTE
+        { path: "create-request", element: <CreateBloodRequest /> },
+        { path: "request/:id", element: <RequestDetails /> },
         { path: "search-donors", element: <SearchDonors /> },
         { path: "notifications", element: <Notifications /> },
         { path: "chat", element: <Chat /> },
@@ -175,7 +156,7 @@ function App() {
   return (
     <>
       <RouterProvider router={router} />
-      <ChatModal />
+      <ChatModal socket={socket} />
     </>
   );
 }
