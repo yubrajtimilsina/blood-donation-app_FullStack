@@ -35,11 +35,13 @@ const HospitalProfile = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, []); 
 
   const fetchProfile = async () => {
     try {
-      const res = await publicRequest.get(`/hospitals/profile`);
+      const res = await publicRequest.get(`/hospitals/profile`, {
+        headers: { token: `Bearer ${user.accessToken}` }
+      });
       setFormData({
         name: res.data.data.name || '',
         address: res.data.data.address || '',

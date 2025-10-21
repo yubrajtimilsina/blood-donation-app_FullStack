@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
-import { publicRequest } from '../requestMethods';
+import { userRequest } from '../requestMethods';
 
 const Chat = () => {
   const user = useSelector((state) => state.user.currentUser);
@@ -67,7 +67,7 @@ const Chat = () => {
   // Fetch user's chats
   const fetchChats = async () => {
     try {
-      const res = await publicRequest.get('/chats');
+      const res = await userRequest.get('/chats');
       setChats(res.data.data);
     } catch (error) {
       console.error('Error fetching chats:', error);
@@ -77,7 +77,7 @@ const Chat = () => {
   // Fetch messages for selected chat
   const fetchMessages = async (chatId) => {
     try {
-      const res = await publicRequest.get(`/chats/${chatId}`);
+      const res = await userRequest.get(`/chats/${chatId}`);
       setMessages(res.data.data.messages || []);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -157,7 +157,7 @@ const Chat = () => {
   // Create new chat
   const createNewChat = async (participantId) => {
     try {
-      const res = await publicRequest.post('/chats', { participantId });
+      const res = await userRequest.post('/chats', { participantId });
       setSelectedChat(res.data.data);
       fetchChats();
     } catch (error) {

@@ -1,10 +1,10 @@
 const BloodRequest = require('../models/BloodRequest');
 const Donor = require('../models/Donor');
 const Recipient = require('../models/Recipient');
-const { createNotification } = require('./notification');
+const { createNotification, createBulkNotifications } = require('./notification');
 const { findNearby } = require('../utils/distance');
 
-// Create blood request
+// ✅ ENHANCED: Create blood request with real-time notifications
 const createBloodRequest = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -52,19 +52,44 @@ const createBloodRequest = async (req, res) => {
             }).limit(20);
         }
 
-        // Send in-app notifications to matching donors
-        for (let donor of matchingDonors) {
-            if (donor.userId) {
-                await createNotification(donor.userId, {
-                    type: 'blood_request',
-                    title: 'New Blood Request Nearby',
-                    message: `Urgent ${req.body.bloodGroup} blood needed at ${req.body.hospitalName}`,
-                    priority: req.body.urgency === 'critical' ? 'urgent' : 'high',
-                    relatedId: savedRequest._id,
-                    relatedModel: 'BloodRequest',
-                    actionUrl: `/blood-requests/${savedRequest._id}`
+        // ✅ BULK NOTIFICATIONS: Send in-app notifications to matching donors
+        const donorUserIds = matchingDonors
+            .map(donor => donor.userId)
+            .filter(id => id); // Filter out null/undefined
+
+        if (donorUserIds.length > 0) {
+            await createBulkNotifications(donorUserIds, {
+                type: 'blood_request',
+                title: 'New Blood Request Nearby',
+                message: `Urgent ${req.body.bloodGroup} blood needed at ${req.body.hospitalName}`,
+                priority: req.body.urgency === 'critical' ? 'urgent' : 'high',
+                relatedId: savedRequest._id,
+                relatedModel: 'BloodRequest',
+                actionUrl: `/blood-requests/${savedRequest._id}`
+            });
+        }
+
+        // ✅ EMIT SOCKET EVENT: Broadcast to all matching donors
+        if (global.io) {
+            donorUserIds.forEach(donorUserId => {
+                global.io.to(`user-${donorUserId}`).emit('newBloodRequest', {
+                    request: savedRequest,
+                    bloodGroup: req.body.bloodGroup,
+                    urgency: req.body.urgency,
+                    hospitalName: req.body.hospitalName,
+                    timestamp: new Date()
                 });
-            }
+            });
+            
+            // Also broadcast to all donors' role-based room
+            global.io.emit('bloodRequestCreated', {
+                requestId: savedRequest._id,
+                bloodGroup: req.body.bloodGroup,
+                urgency: req.body.urgency,
+                unitsNeeded: req.body.unitsNeeded,
+                hospitalName: req.body.hospitalName,
+                requiredBy: req.body.requiredBy
+            });
         }
 
         res.status(201).json({
@@ -95,7 +120,7 @@ const getAllBloodRequests = async (req, res) => {
         if (userId) filter.createdBy = userId;
 
         const requests = await BloodRequest.find(filter)
-            .populate('createdBy', 'name email')
+            .populate('createdBy', 'name email phone')
             .sort({ createdAt: -1 });
 
         res.status(200).json({
@@ -113,7 +138,6 @@ const getAllBloodRequests = async (req, res) => {
     }
 };
 
-// Get nearby blood requests for donor
 // ✅ FIXED: Get nearby requests
 const getNearbyRequests = async (req, res) => {
     try {
@@ -189,7 +213,7 @@ const getNearbyRequests = async (req, res) => {
         error: error.message
       });
     }
-  };
+};
 
 // Get single blood request
 const getBloodRequest = async (req, res) => {
@@ -197,7 +221,8 @@ const getBloodRequest = async (req, res) => {
         const { id } = req.params;
         
         const request = await BloodRequest.findById(id)
-            .populate('createdBy', 'name email phone');
+            .populate('createdBy', 'name email phone')
+            .populate('fulfilledBy', 'name bloodgroup');
 
         if (!request) {
             return res.status(404).json({
@@ -219,7 +244,7 @@ const getBloodRequest = async (req, res) => {
     }
 };
 
-// Update blood request status
+// ✅ ENHANCED: Update blood request status with notifications
 const updateBloodRequestStatus = async (req, res) => {
     try {
         const { id } = req.params;
@@ -233,7 +258,8 @@ const updateBloodRequestStatus = async (req, res) => {
                 fulfilledAt: status === 'fulfilled' ? new Date() : undefined
             },
             { new: true }
-        ).populate('createdBy', 'name email');
+        ).populate('createdBy', 'name email')
+         .populate('fulfilledBy', 'name bloodgroup email tel');
 
         if (!updatedRequest) {
             return res.status(404).json({
@@ -252,16 +278,55 @@ const updateBloodRequestStatus = async (req, res) => {
             }
         }
 
-        // Send notification to requester
+        // ✅ NOTIFICATIONS: Send to requester
         if (updatedRequest.createdBy && updatedRequest.createdBy._id) {
+            const notificationMessage = status === 'fulfilled' 
+                ? `Your blood request has been fulfilled by ${updatedRequest.fulfilledBy?.name || 'a donor'}`
+                : `Your blood request has been marked as ${status}`;
+
             await createNotification(updatedRequest.createdBy._id, {
                 type: 'request_fulfilled',
                 title: 'Blood Request Updated',
-                message: `Your blood request has been marked as ${status}`,
+                message: notificationMessage,
                 priority: 'high',
                 relatedId: updatedRequest._id,
                 relatedModel: 'BloodRequest'
             });
+        }
+
+        // ✅ SOCKET EVENT: Notify requester in real-time
+        if (global.io && updatedRequest.createdBy) {
+            global.io.to(`user-${updatedRequest.createdBy._id}`).emit('requestStatusChanged', {
+                requestId: updatedRequest._id,
+                status,
+                fulfilledBy: updatedRequest.fulfilledBy,
+                timestamp: new Date()
+            });
+        }
+
+        // ✅ If fulfilled, notify the donor as well
+        if (status === 'fulfilled' && fulfilledBy) {
+            const donor = await Donor.findById(fulfilledBy);
+            if (donor && donor.userId) {
+                await createNotification(donor.userId, {
+                    type: 'donation_reminder',
+                    title: 'Donation Confirmed',
+                    message: `Thank you for fulfilling the blood request for ${updatedRequest.patientName}`,
+                    priority: 'medium',
+                    relatedId: updatedRequest._id,
+                    relatedModel: 'BloodRequest'
+                });
+
+                // Socket notification to donor
+                if (global.io) {
+                    global.io.to(`user-${donor.userId}`).emit('donationConfirmed', {
+                        requestId: updatedRequest._id,
+                        patientName: updatedRequest.patientName,
+                        hospitalName: updatedRequest.hospitalName,
+                        timestamp: new Date()
+                    });
+                }
+            }
         }
 
         res.status(200).json({
@@ -270,6 +335,7 @@ const updateBloodRequestStatus = async (req, res) => {
             message: 'Blood request updated successfully'
         });
     } catch (error) {
+        console.error('Update blood request error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to update blood request',
@@ -292,6 +358,14 @@ const deleteBloodRequest = async (req, res) => {
             });
         }
 
+        // ✅ SOCKET EVENT: Broadcast deletion
+        if (global.io) {
+            global.io.emit('requestDeleted', {
+                requestId: id,
+                timestamp: new Date()
+            });
+        }
+
         res.status(200).json({
             success: true,
             message: 'Blood request deleted successfully'
@@ -305,11 +379,90 @@ const deleteBloodRequest = async (req, res) => {
     }
 };
 
+// ✅ NEW: Accept blood request (donor accepts)
+const acceptBloodRequest = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const donorUserId = req.user.id;
+
+        const donor = await Donor.findOne({ userId: donorUserId });
+        
+        if (!donor) {
+            return res.status(404).json({
+                success: false,
+                message: 'Donor profile not found'
+            });
+        }
+
+        const request = await BloodRequest.findById(id)
+            .populate('createdBy', 'name email phone');
+
+        if (!request) {
+            return res.status(404).json({
+                success: false,
+                message: 'Blood request not found'
+            });
+        }
+
+        if (request.status !== 'pending') {
+            return res.status(400).json({
+                success: false,
+                message: 'This request is no longer pending'
+            });
+        }
+
+        // Update request
+        request.status = 'fulfilled';
+        request.fulfilledBy = donor._id;
+        request.fulfilledAt = new Date();
+        await request.save();
+
+        // Notify recipient
+        if (request.createdBy) {
+            await createNotification(request.createdBy._id, {
+                type: 'request_fulfilled',
+                title: 'Donor Found!',
+                message: `${donor.name} has accepted your blood request`,
+                priority: 'urgent',
+                relatedId: request._id,
+                relatedModel: 'BloodRequest'
+            });
+
+            // Socket notification
+            if (global.io) {
+                global.io.to(`user-${request.createdBy._id}`).emit('donorAccepted', {
+                    requestId: request._id,
+                    donor: {
+                        name: donor.name,
+                        bloodgroup: donor.bloodgroup,
+                        tel: donor.tel
+                    },
+                    timestamp: new Date()
+                });
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            data: request,
+            message: 'Blood request accepted successfully'
+        });
+    } catch (error) {
+        console.error('Accept blood request error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to accept blood request',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createBloodRequest,
     getAllBloodRequests,
     getNearbyRequests,
     getBloodRequest,
     updateBloodRequestStatus,
-    deleteBloodRequest
+    deleteBloodRequest,
+    acceptBloodRequest  // NEW
 };

@@ -123,7 +123,6 @@ const getBloodInventory = async (req, res) => {
     const userId = req.user.id;
     let hospital = await Hospital.findOne({ userId });
 
-    // If hospital profile doesn't exist, create a default one
     if (!hospital) {
       const user = await User.findById(userId);
       hospital = new Hospital({
@@ -140,14 +139,12 @@ const getBloodInventory = async (req, res) => {
         location: { type: 'Point', coordinates: [0, 0] }
       });
       await hospital.save();
-
-      // Update user with hospital profile reference
       await User.findByIdAndUpdate(userId, { hospitalProfile: hospital._id });
     }
 
     res.status(200).json({
       success: true,
-      data: hospital.bloodInventory,
+      data: hospital.bloodInventory || {} // ✅ Fixed: Return inventory directly
     });
   } catch (error) {
     console.error("Error fetching blood inventory:", error);
@@ -180,36 +177,24 @@ const getAllHospitals = async (req, res) => {
   }
 };
 
-// Get local donors within radius
+// Get local donors within radius - using same process as admin dashboard
 const getLocalDonors = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const radius = parseInt(req.query.radius) || 10;
+    const { bloodgroup, isAvailable, search } = req.query;
 
-    // Get hospital location
-    const hospital = await Hospital.findOne({ userId });
-
-    // If hospital profile doesn't exist or has no location, return available donors as fallback
-    if (!hospital || !hospital.location || hospital.location.coordinates[0] === 0) {
-      // Return a fallback list of available donors so hospitals can still view donors
-      const fallbackDonors = await Donor.find({ isAvailable: true }).limit(100).populate('userId', 'name email phone');
-      return res.status(200).json({
-        success: true,
-        data: fallbackDonors,
-        message: "Hospital location not set. Returning available donors as fallback. Please update your hospital profile to get nearby donors.",
-      });
+    const filter = {};
+    if (bloodgroup) filter.bloodgroup = bloodgroup;
+    if (isAvailable !== undefined) filter.isAvailable = isAvailable === 'true';
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
     }
 
-    // Find donors within radius
-    const donors = await Donor.find({
-      location: {
-        $near: {
-          $geometry: hospital.location,
-          $maxDistance: radius * 1000,
-        },
-      },
-      isAvailable: true,
-    }).populate('userId', 'name email phone');
+    const donors = await Donor.find(filter)
+      .populate('userId', 'name email verified')
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -265,12 +250,64 @@ const getHospitalRequests = async (req, res) => {
   }
 };
 
+// Get My Hospital Profile (alias for getHospitalProfile)
+const getMyHospitalProfile = async (req, res) => {
+  return getHospitalProfile(req, res);
+};
+
+// Add hospital verification endpoint
+const verifyHospitalLicense = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { licenseNumber } = req.body;
+
+    if (!licenseNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "License number is required"
+      });
+    }
+
+    const hospital = await Hospital.findOneAndUpdate(
+      { userId },
+      { 
+        licenseNumber,
+        verified: true,
+        updatedAt: new Date()
+      },
+      { new: true }
+    );
+
+    if (!hospital) {
+      return res.status(404).json({
+        success: false,
+        message: "Hospital profile not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: hospital,
+      message: "Hospital verified successfully"
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to verify hospital",
+      error: error.message
+    });
+  }
+};
+
+// Add to module.exports:
 module.exports = {
   getHospitalProfile,
+  getMyHospitalProfile, // ADD THIS
   updateHospitalProfile,
   updateBloodInventory,
   getBloodInventory,
   getAllHospitals,
   getLocalDonors,
   getHospitalRequests,
+  verifyHospitalLicense // ADD THIS
 };

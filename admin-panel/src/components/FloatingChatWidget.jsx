@@ -44,7 +44,7 @@ const FloatingChatWidget = () => {
 
   const handleChatWithDonor = () => {
     // Navigate to local donors page where they can initiate chat
-    navigate('/hospital/donors');
+    navigate('/hospital/local-donors');
     setShowOptions(false);
     setIsExpanded(false);
   };

@@ -280,23 +280,24 @@ const SearchDonors = () => {
                     >
                       Call
                     </a>
-                    <button
-                      // In the message button, update the onClick:
-                  onClick={() => {
-               // Open chat modal with this donor
-                  const event = new CustomEvent('openChatModal', {
-                   detail: {
-                         recipientId: donor.userId?._id || donor._id,
-                     recipientName: donor.name,
-                     recipientRole: 'donor'
-                  }
-                  });
-                  window.dispatchEvent(event);
-               }}
-              >
-                      <FaComments className="text-xs" />
-                      Message
-                    </button>
+                    {donor.userId && (
+                      <button
+                        onClick={() => {
+                          const event = new CustomEvent('openChatModal', {
+                            detail: {
+                              recipientId: donor.userId._id,
+                              recipientName: donor.name,
+                              recipientRole: 'donor'
+                            }
+                          });
+                          window.dispatchEvent(event);
+                        }}
+                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                      >
+                        <FaComments className="text-xs" />
+                        Message
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

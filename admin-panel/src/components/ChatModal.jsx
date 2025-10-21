@@ -1,60 +1,77 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { FaTimes, FaPaperPlane } from 'react-icons/fa';
-import { io } from 'socket.io-client';
-import { publicRequest } from '../requestMethods';
+import { FaPaperPlane } from 'react-icons/fa';
+import { userRequest } from '../requestMethods';
+import socketService from '../utils/socketServices';
 
 const ChatModal = ({ isOpen, onClose, recipientId, recipientName, recipientRole }) => {
+  const chatModalRef = useRef(null);
   const user = useSelector((state) => state.user.currentUser);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [chatId, setChatId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const socketRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   // Initialize socket connection
   useEffect(() => {
     if (isOpen && user && recipientId) {
-      socketRef.current = io('http://localhost:3000', {
-        auth: {
-          token: localStorage.getItem('token')
-        }
-      });
-
-      const socket = socketRef.current;
-
-      // Join user to socket
-      socket.emit('join', { userId: user._id, role: user.role });
-
-      // Create or get chat
+      // Connect socket if not connected
+      if (!socketService.isConnected()) {
+        socketService.connect(user._id, user.role, user.accessToken);
+      }
       createOrGetChat();
-
-      // Listen for events
-      socket.on('receiveMessage', (data) => {
-        if (data.chatId === chatId) {
-          setMessages(prev => [...prev, data]);
-        }
-      });
-
-      socket.on('userTyping', (data) => {
-        if (data.chatId === chatId) {
-          setIsTyping(true);
-        }
-      });
-
-      socket.on('userStopTyping', (data) => {
-        if (data.chatId === chatId) {
-          setIsTyping(false);
-        }
-      });
-
-      return () => {
-        socket.disconnect();
-      };
     }
-  }, [isOpen, user, recipientId, chatId]);
+  }, [isOpen, user, recipientId]);
+
+  // Setup socket listeners when chat is created
+  useEffect(() => {
+    if (!chatId || !socketService.isConnected()) return;
+
+    console.log('💬 Setting up chat listeners for:', chatId);
+
+    // Join chat room
+    socketService.joinChat(chatId);
+
+    // Message listener
+    const handleReceiveMessage = (data) => {
+      console.log('📨 Message received:', data);
+      if (data.chatId === chatId) {
+        const message = data.message || data;
+        setMessages(prev => {
+          // Avoid duplicates
+          if (prev.find(m => m._id === message._id)) return prev;
+          return [...prev, message];
+        });
+      }
+    };
+
+    // Typing listeners
+    const handleUserTyping = (data) => {
+      if (data.chatId === chatId && data.senderId !== user._id) {
+        setIsTyping(true);
+      }
+    };
+
+    const handleUserStopTyping = (data) => {
+      if (data.chatId === chatId && data.senderId !== user._id) {
+        setIsTyping(false);
+      }
+    };
+
+    socketService.on('receiveMessage', handleReceiveMessage);
+    socketService.on('userTyping', handleUserTyping);
+    socketService.on('userStopTyping', handleUserStopTyping);
+
+    return () => {
+      socketService.leaveChat(chatId);
+      socketService.off('receiveMessage', handleReceiveMessage);
+      socketService.off('userTyping', handleUserTyping);
+      socketService.off('userStopTyping', handleUserStopTyping);
+    };
+  }, [chatId, user]);
 
   // Create or get existing chat
   const createOrGetChat = async () => {
@@ -62,7 +79,7 @@ const ChatModal = ({ isOpen, onClose, recipientId, recipientName, recipientRole 
 
     try {
       setLoading(true);
-      const res = await publicRequest.post('/chats', { participantId: recipientId });
+      const res = await userRequest.post('/chats', { participantId: recipientId });
       setChatId(res.data.data._id);
       setMessages(res.data.data.messages || []);
     } catch (error) {
@@ -80,61 +97,76 @@ const ChatModal = ({ isOpen, onClose, recipientId, recipientName, recipientRole 
   // Handle sending message
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !chatId) return;
+    if (!newMessage.trim() || !chatId || !user?.accessToken) return;
+
+    const messageContent = newMessage.trim();
+    const tempMessage = {
+      _id: Date.now().toString(),
+      sender: user._id,
+      content: messageContent,
+      timestamp: new Date(),
+      temp: true
+    };
 
     try {
-      // Send via API first
-      await publicRequest.post(`/chats/${chatId}/messages`, {
-        content: newMessage.trim()
+      // Optimistically add message to UI
+      setMessages(prev => [...prev, tempMessage]);
+      setNewMessage('');
+
+      // Stop typing indicator
+      if (socketService.isConnected()) {
+        socketService.stopTyping(chatId, recipientId);
+      }
+
+      // Send to backend
+      const res = await userRequest.post(`/chats/${chatId}/messages`, {
+        content: messageContent
       });
 
-      // Then emit via socket for real-time
-      const socket = socketRef.current;
-      if (socket) {
-        socket.emit('sendMessage', {
-          chatId,
-          message: newMessage.trim(),
-          senderId: user._id,
-          receiverId: recipientId
-        });
-
-        // Optimistically add message to UI
-        const messageData = {
-          sender: user._id,
-          content: newMessage.trim(),
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, messageData]);
-        setNewMessage('');
+      // Replace temp message with real one
+      if (res.data.success) {
+        setMessages(prev =>
+          prev.map(m => m._id === tempMessage._id ? res.data.data : m)
+        );
       }
+
+      // Send via socket for real-time delivery
+      if (socketService.isConnected()) {
+        socketService.sendMessage(chatId, messageContent, user._id, recipientId);
+      }
+
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('❌ Error sending message:', error);
+      // Remove temp message on error
+      setMessages(prev => prev.filter(m => m._id !== tempMessage._id));
+      alert('Failed to send message. Please try again.');
     }
   };
 
-  // Handle typing
+  // Handle typing indicator
   const handleTyping = () => {
-    const socket = socketRef.current;
-    if (socket && chatId) {
-      socket.emit('typing', {
-        chatId,
-        receiverId: recipientId
-      });
+    if (!socketService.isConnected() || !chatId) return;
 
-      // Stop typing after 2 seconds
-      setTimeout(() => {
-        socket.emit('stopTyping', {
-          chatId,
-          receiverId: recipientId
-        });
-      }, 2000);
+    // Emit typing event
+    socketService.startTyping(chatId, recipientId, user.name);
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
     }
+
+    // Stop typing after 2 seconds
+    typingTimeoutRef.current = setTimeout(() => {
+      if (socketService.isConnected()) {
+        socketService.stopTyping(chatId, recipientId);
+      }
+    }, 2000);
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div ref={chatModalRef} data-chat-modal className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl h-3/4 flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
@@ -166,27 +198,34 @@ const ChatModal = ({ isOpen, onClose, recipientId, recipientName, recipientRole 
               <p>No messages yet. Start the conversation!</p>
             </div>
           ) : (
-            messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${message.sender === user._id ? 'justify-end' : 'justify-start'}`}
-              >
+            messages.map((message, index) => {
+              const isOwnMessage = message.sender === user._id || message.sender?._id === user._id;
+
+              return (
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    message.sender === user._id
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white text-gray-800 border border-gray-200'
-                  }`}
+                  key={message._id || index}
+                  className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
                 >
-                  <p>{message.content || message.message}</p>
-                  <p className={`text-xs mt-1 ${
-                    message.sender === user._id ? 'text-blue-100' : 'text-gray-500'
-                  }`}>
-                    {new Date(message.timestamp).toLocaleTimeString()}
-                  </p>
+                  <div
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                      isOwnMessage
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white text-gray-800 border border-gray-200'
+                    } ${message.temp ? 'opacity-70' : ''}`}
+                  >
+                    <p className="break-words">{message.content}</p>
+                    <p className={`text-xs mt-1 ${
+                      isOwnMessage ? 'text-blue-100' : 'text-gray-500'
+                    }`}>
+                      {new Date(message.timestamp).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
 
           {isTyping && (
@@ -214,12 +253,13 @@ const ChatModal = ({ isOpen, onClose, recipientId, recipientName, recipientRole 
                 handleTyping();
               }}
               placeholder="Type a message..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading || !chatId}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
             <button
               type="submit"
-              disabled={!newMessage.trim()}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              disabled={!newMessage.trim() || loading || !chatId}
+              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
             >
               <FaPaperPlane /> Send
             </button>

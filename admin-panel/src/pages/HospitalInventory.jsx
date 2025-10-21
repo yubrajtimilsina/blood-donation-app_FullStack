@@ -27,7 +27,8 @@ const HospitalInventory = () => {
 
   const fetchInventory = async () => {
     try {
-      const res = await publicRequest.get('/inventory', {
+      // ✅ FIXED: Use correct endpoint
+      const res = await publicRequest.get('/hospitals/inventory', {
         headers: { token: `Bearer ${user.accessToken}` }
       });
       setInventory(res.data.data || inventory);
@@ -52,8 +53,9 @@ const HospitalInventory = () => {
     setSaving(true);
 
     try {
+      // ✅ FIXED: Use correct endpoint
       await publicRequest.put(
-        '/hospital/inventory',
+        '/hospitals/inventory',
         { bloodInventory: inventory },
         { headers: { token: `Bearer ${user.accessToken}` } }
       );
@@ -82,7 +84,7 @@ const HospitalInventory = () => {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => navigate('/hospital')}
+            onClick={() => navigate('/hospital/dashboard')}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4"
           >
             <FaArrowLeft />

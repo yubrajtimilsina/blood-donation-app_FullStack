@@ -2,18 +2,16 @@ const Chat = require('../models/Chat');
 const User = require('../models/User');
 const Recipient = require('../models/Recipient');
 
-// Store online users (this should be moved to a better place)
-const onlineUsers = new Map();
-
 // Create or get existing chat
 const createChat = async (req, res) => {
   try {
     const { participantId, relatedTo } = req.body;
     const currentUserId = req.user.id;
 
-    // Check if chat already exists
+    // Check if chat already exists between these two specific users
     let chat = await Chat.findOne({
-      'participants.userId': { $all: [currentUserId, participantId] }
+      'participants.userId': { $all: [currentUserId, participantId] },
+      'participants': { $size: 2 } // Ensure exactly 2 participants
     }).populate('participants.userId', 'name email role');
 
     if (chat) {
@@ -49,6 +47,14 @@ const createChat = async (req, res) => {
 
     await chat.save();
     await chat.populate('participants.userId', 'name email role');
+
+    // ✅ EMIT SOCKET EVENT
+    if (global.io) {
+      global.io.to(`user-${participantId}`).emit('newChat', {
+        chatId: chat._id,
+        participant: currentUser
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -133,7 +139,7 @@ const getChat = async (req, res) => {
   }
 };
 
-// Send message
+// ✅ FIXED: Send message with Socket.IO
 const sendMessage = async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -185,9 +191,29 @@ const sendMessage = async (req, res) => {
     await chat.save();
     await chat.populate('messages.sender', 'name role');
 
+    const newMessage = chat.messages[chat.messages.length - 1];
+
+    // ✅ EMIT SOCKET EVENT TO ALL PARTICIPANTS
+    if (global.io) {
+      chat.participants.forEach(participant => {
+        if (participant.userId.toString() !== senderId) {
+          global.io.to(`user-${participant.userId}`).emit('receiveMessage', {
+            chatId: chat._id,
+            message: newMessage
+          });
+        }
+      });
+
+      // Also emit to chat room
+      global.io.to(`chat-${chatId}`).emit('receiveMessage', {
+        chatId: chat._id,
+        message: newMessage
+      });
+    }
+
     res.status(200).json({
       success: true,
-      data: chat.messages[chat.messages.length - 1],
+      data: newMessage,
       message: 'Message sent successfully'
     });
   } catch (error) {
@@ -216,13 +242,27 @@ const markAsRead = async (req, res) => {
     }
 
     // Mark all messages not sent by user as read
+    let unreadCount = 0;
     chat.messages.forEach(message => {
-      if (message.sender.toString() !== userId) {
+      if (message.sender.toString() !== userId && !message.read) {
         message.read = true;
+        unreadCount++;
       }
     });
 
     await chat.save();
+
+    // ✅ EMIT READ RECEIPT
+    if (global.io && unreadCount > 0) {
+      chat.participants.forEach(participant => {
+        if (participant.userId.toString() !== userId) {
+          global.io.to(`user-${participant.userId}`).emit('messagesRead', {
+            chatId: chat._id,
+            readBy: userId
+          });
+        }
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -296,6 +336,15 @@ const deleteChat = async (req, res) => {
     }
 
     await Chat.findByIdAndDelete(chatId);
+
+    // ✅ EMIT DELETION EVENT
+    if (global.io) {
+      chat.participants.forEach(participant => {
+        global.io.to(`user-${participant.userId}`).emit('chatDeleted', {
+          chatId: chat._id
+        });
+      });
+    }
 
     res.status(200).json({
       success: true,

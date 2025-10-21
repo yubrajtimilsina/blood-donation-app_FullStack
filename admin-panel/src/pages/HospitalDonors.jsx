@@ -255,17 +255,13 @@ const HospitalDonors = () => {
                     <button
                       onClick={() => {
                         // Dispatch custom event to open chat modal with donor
-                        const chatModal = document.querySelector('[data-chat-modal]');
-                        if (chatModal) {
-                          const event = new CustomEvent('openChatModal', {
-                            detail: {
-                              recipientId: donor._id,
-                              recipientName: donor.name,
-                              recipientRole: 'donor'
-                            }
-                          });
-                          chatModal.dispatchEvent(event);
-                        }
+                        window.dispatchEvent(new CustomEvent('openChatModal', {
+                          detail: {
+                            recipientId: donor.userId,
+                            recipientName: donor.name,
+                            recipientRole: 'donor'
+                          }
+                        }));
                       }}
                       className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                     >

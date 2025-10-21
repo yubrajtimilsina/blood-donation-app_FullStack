@@ -13,7 +13,7 @@ import Prospects from './pages/Prospects';
 import Prospect from './pages/Prospect';
 import Donors from './pages/Donors';
 import Donor from './pages/Donor';
-import NewDonor from './pages/NewDonor'; 
+import NewDonor from './pages/NewDonor';
 import BloodRequests from './pages/BloodRequest';
 import Hospital from './pages/Hospital';
 import HospitalInventory from './pages/HospitalInventory';
@@ -29,9 +29,43 @@ import HospitalNavbar from './components/HospitalNavbar';
 import PrivateRoute from './components/PrivateRoute';
 import FloatingChatWidget from './components/FloatingChatWidget';
 import ChatModal from './components/ChatModal';
+import { useState, useEffect } from 'react';
 
 function App() {
   const user = useSelector((state) => state.user.currentUser);
+  const [chatModalState, setChatModalState] = useState({
+    isOpen: false,
+    recipientId: null,
+    recipientName: '',
+    recipientRole: ''
+  });
+
+  // Listen for custom events to open chat modal
+  useEffect(() => {
+    const handleOpenChatModal = (event) => {
+      setChatModalState({
+        isOpen: true,
+        recipientId: event.detail.recipientId,
+        recipientName: event.detail.recipientName,
+        recipientRole: event.detail.recipientRole
+      });
+    };
+
+    window.addEventListener('openChatModal', handleOpenChatModal);
+
+    return () => {
+      window.removeEventListener('openChatModal', handleOpenChatModal);
+    };
+  }, []);
+
+  const closeChatModal = () => {
+    setChatModalState({
+      isOpen: false,
+      recipientId: null,
+      recipientName: '',
+      recipientRole: ''
+    });
+  };
 
   // 🔹 Admin Layout (Menu + Outlet)
   const AdminLayout = () => (
@@ -141,7 +175,13 @@ function App() {
   return (
     <>
       <RouterProvider router={router} />
-      <ChatModal />
+      <ChatModal
+        isOpen={chatModalState.isOpen}
+        onClose={closeChatModal}
+        recipientId={chatModalState.recipientId}
+        recipientName={chatModalState.recipientName}
+        recipientRole={chatModalState.recipientRole}
+      />
     </>
   );
 }

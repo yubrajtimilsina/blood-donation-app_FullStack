@@ -4,6 +4,7 @@ const Recipient = require('../models/Recipient');
 const BloodRequest = require('../models/BloodRequest');
 const Notification = require('../models/Notification');
 const DonationHistory = require('../models/DonationHistory');
+const Hospital = require('../models/Hospital');
 
 // Get dashboard statistics
 const getDashboardStats = async (req, res) => {
