@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { FaHeart, FaUsers, FaHospital, FaTint, FaCheckCircle } from 'react-icons/fa';
 
 const Featured = () => {
@@ -138,9 +139,12 @@ const Featured = () => {
 
             {/* CTA Button */}
             <div className="text-center">
-              <button className="bg-white text-red-600 px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-sm sm:text-base lg:text-lg hover:bg-red-50 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
-                Join Our Mission
-              </button>
+              <Link
+                to="/register"
+                className="bg-white text-red-600 px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-sm sm:text-base lg:text-lg hover:bg-red-50 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl inline-block"
+              >
+                Become a Donor
+              </Link>
             </div>
 
             {/* Decorative Elements */}

@@ -1,0 +1,90 @@
+// Get all hospitals for public search
+const getAllHospitalsPublic = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20 } = req.query;
+
+    const filter = {};
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { address: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const hospitals = await Hospital.find(filter)
+      .populate('userId', 'name email verified')
+      .select('name address phone email location verified services')
+      .sort({ name: 1 })
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit));
+
+    const total = await Hospital.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      data: hospitals,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch hospitals',
+      error: error.message
+    });
+  }
+};
+
+// Search hospitals nearby
+const searchHospitalsNearby = async (req, res) => {
+  try {
+    const { latitude, longitude, radius = 50, search } = req.query;
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        message: 'Latitude and longitude are required for nearby search'
+      });
+    }
+
+    const filter = {
+      location: {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(longitude), parseFloat(latitude)]
+          },
+          $maxDistance: parseFloat(radius) * 1000 // Convert km to meters
+        }
+      }
+    };
+
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { address: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const hospitals = await Hospital.find(filter)
+      .populate('userId', 'name email verified')
+      .select('name address phone email location verified services')
+      .sort({ name: 1 });
+
+    res.status(200).json({
+      success: true,
+      data: hospitals,
+      count: hospitals.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to search nearby hospitals',
+      error: error.message
+    });
+  }
+};

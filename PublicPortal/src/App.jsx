@@ -18,6 +18,7 @@ import RecipientDashboard from "./pages/RecipientDashboard";
 import RecipientProfile from "./pages/RecipientProfile";
 import MyRequests from "./pages/MyRequests";
 import SearchDonors from "./pages/SearchDonors";
+import SearchHospitals from "./pages/SearchHospitals";
 import Notifications from "./pages/Notifications";
 import CreateBloodRequest from "./pages/CreateBloodRequest";
 import DonationHistory from "./pages/DonationHistory";
@@ -147,6 +148,7 @@ function App() {
         { path: "create-request", element: <CreateBloodRequest /> },
         { path: "request/:id", element: <RequestDetails /> },
         { path: "search-donors", element: <SearchDonors /> },
+        { path: "search-hospitals", element: <SearchHospitals /> },
         { path: "notifications", element: <Notifications /> },
         { path: "chat", element: <Chat /> },
       ],

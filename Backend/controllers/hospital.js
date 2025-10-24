@@ -26,7 +26,7 @@ const getHospitalProfile = async (req, res) => {
         location: { type: 'Point', coordinates: [0, 0] }
       });
       await hospital.save();
-      
+
       // Update user with hospital profile reference
       await User.findByIdAndUpdate(userId, { hospitalProfile: hospital._id });
     }
@@ -87,25 +87,35 @@ const updateHospitalProfile = async (req, res) => {
 const updateBloodInventory = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { bloodInventory } = req.body;
+    const { bloodGroup, units } = req.body;
+
+    if (!bloodGroup || units === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Blood group and units are required"
+      });
+    }
+
+    const updateQuery = {};
+    updateQuery[`bloodInventory.${bloodGroup}`] = units;
 
     const hospital = await Hospital.findOneAndUpdate(
       { userId },
-      { bloodInventory },
+      { $set: updateQuery },
       { new: true }
     );
 
     if (!hospital) {
       return res.status(404).json({
         success: false,
-        message: "Hospital profile not found",
+        message: "Hospital not found"
       });
     }
 
     res.status(200).json({
       success: true,
       data: hospital.bloodInventory,
-      message: "Blood inventory updated successfully",
+      message: "Blood inventory updated successfully"
     });
   } catch (error) {
     console.error("Error updating blood inventory:", error);
@@ -121,30 +131,18 @@ const updateBloodInventory = async (req, res) => {
 const getBloodInventory = async (req, res) => {
   try {
     const userId = req.user.id;
-    let hospital = await Hospital.findOne({ userId });
+    const hospital = await Hospital.findOne({ userId });
 
     if (!hospital) {
-      const user = await User.findById(userId);
-      hospital = new Hospital({
-        userId,
-        name: user.name || 'Hospital',
-        email: user.email,
-        phone: user.phone || '000-000-0000',
-        address: 'Address not set',
-        licenseNumber: 'TEMP-' + Date.now(),
-        bloodInventory: {
-          'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0,
-          'AB+': 0, 'AB-': 0, 'O+': 0, 'O-': 0
-        },
-        location: { type: 'Point', coordinates: [0, 0] }
+      return res.status(404).json({
+        success: false,
+        message: "Hospital profile not found"
       });
-      await hospital.save();
-      await User.findByIdAndUpdate(userId, { hospitalProfile: hospital._id });
     }
 
     res.status(200).json({
       success: true,
-      data: hospital.bloodInventory || {} // ✅ Fixed: Return inventory directly
+      data: hospital.bloodInventory
     });
   } catch (error) {
     console.error("Error fetching blood inventory:", error);
@@ -156,16 +154,17 @@ const getBloodInventory = async (req, res) => {
   }
 };
 
-// Get all hospitals (admin only)
+// Get all hospitals (admin)
 const getAllHospitals = async (req, res) => {
   try {
-    const hospitals = await Hospital.find({})
-      .populate('userId', 'name email phone')
-      .select('name address phone bloodInventory location');
+    const hospitals = await Hospital.find()
+      .populate('userId', 'name email verified')
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      data: hospitals,
+      count: hospitals.length,
+      data: hospitals
     });
   } catch (error) {
     console.error("Error fetching hospitals:", error);
@@ -177,28 +176,42 @@ const getAllHospitals = async (req, res) => {
   }
 };
 
-// Get local donors within radius - using same process as admin dashboard
+// Get local donors for hospital
 const getLocalDonors = async (req, res) => {
   try {
-    const { bloodgroup, isAvailable, search } = req.query;
+    const userId = req.user.id;
+    const hospital = await Hospital.findOne({ userId });
 
-    const filter = {};
-    if (bloodgroup) filter.bloodgroup = bloodgroup;
-    if (isAvailable !== undefined) filter.isAvailable = isAvailable === 'true';
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
-      ];
+    if (!hospital || !hospital.location || hospital.location.coordinates[0] === 0) {
+      // Fallback: return all available donors
+      const donors = await Donor.find({ isAvailable: true })
+        .populate('userId', 'name email phone')
+        .limit(50);
+
+      return res.status(200).json({
+        success: true,
+        data: donors,
+        count: donors.length
+      });
     }
 
-    const donors = await Donor.find(filter)
-      .populate('userId', 'name email verified')
-      .sort({ createdAt: -1 });
+    // Find donors within 50km of hospital
+    const donors = await Donor.find({
+      isAvailable: true,
+      location: {
+        $near: {
+          $geometry: hospital.location,
+          $maxDistance: 50000, // 50km in meters
+        },
+      },
+    })
+      .populate('userId', 'name email phone')
+      .limit(50);
 
     res.status(200).json({
       success: true,
       data: donors,
+      count: donors.length
     });
   } catch (error) {
     console.error("Error fetching local donors:", error);
@@ -270,7 +283,7 @@ const verifyHospitalLicense = async (req, res) => {
 
     const hospital = await Hospital.findOneAndUpdate(
       { userId },
-      { 
+      {
         licenseNumber,
         verified: true,
         updatedAt: new Date()
@@ -299,15 +312,107 @@ const verifyHospitalLicense = async (req, res) => {
   }
 };
 
-// Add to module.exports:
+// Get all hospitals for public search
+const getAllHospitalsPublic = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20 } = req.query;
+
+    const filter = {};
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { address: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const hospitals = await Hospital.find(filter)
+      .populate('userId', 'name email verified')
+      .select('name address phone email location verified services')
+      .sort({ name: 1 })
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit));
+
+    const total = await Hospital.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      data: hospitals,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch hospitals',
+      error: error.message
+    });
+  }
+};
+
+// Search hospitals nearby
+const searchHospitalsNearby = async (req, res) => {
+  try {
+    const { latitude, longitude, radius = 50, search } = req.query;
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        message: 'Latitude and longitude are required for nearby search'
+      });
+    }
+
+    const filter = {
+      location: {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(longitude), parseFloat(latitude)]
+          },
+          $maxDistance: parseFloat(radius) * 1000 // Convert km to meters
+        }
+      }
+    };
+
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { address: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const hospitals = await Hospital.find(filter)
+      .populate('userId', 'name email verified')
+      .select('name address phone email location verified services')
+      .sort({ name: 1 });
+
+    res.status(200).json({
+      success: true,
+      data: hospitals,
+      count: hospitals.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to search nearby hospitals',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getHospitalProfile,
-  getMyHospitalProfile, // ADD THIS
+  getMyHospitalProfile,
   updateHospitalProfile,
   updateBloodInventory,
   getBloodInventory,
   getAllHospitals,
   getLocalDonors,
   getHospitalRequests,
-  verifyHospitalLicense // ADD THIS
+  verifyHospitalLicense,
+  getAllHospitalsPublic,
+  searchHospitalsNearby
 };

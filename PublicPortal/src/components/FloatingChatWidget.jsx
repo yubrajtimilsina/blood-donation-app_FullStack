@@ -33,7 +33,7 @@ const FloatingChatWidget = () => {
   };
 
   const handleChatWithHospital = () => {
-    navigate('/recipient/dashboard');
+    navigate('/recipient/search-hospitals');
     setShowOptions(false);
   };
 

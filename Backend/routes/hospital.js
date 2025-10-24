@@ -8,7 +8,10 @@ const {
   getBloodInventory,
   getAllHospitals,
   getLocalDonors,
-  getHospitalRequests
+  getHospitalRequests,
+  verifyHospitalLicense,
+  getAllHospitalsPublic,
+  searchHospitalsNearby,
 } = require("../controllers/hospital");
 
 // Hospital profile routes
@@ -33,5 +36,13 @@ router.get("/all", verifyToken, checkRole('admin'), getAllHospitals);
 // Add this before other profile routes
 router.get('/me', verifyToken, checkRole('hospital', 'admin'), getHospitalProfile);
 router.get('/profile/me', verifyToken, checkRole('hospital', 'admin'), getHospitalProfile);
+
+
+// Add after existing routes:
+router.put("/verify-license", verifyToken, checkRole('hospital', 'admin'), verifyHospitalLicense);
+
+// Public routes for hospital search
+router.get("/public", getAllHospitalsPublic);
+router.get("/nearby", searchHospitalsNearby);
 
 module.exports = router;

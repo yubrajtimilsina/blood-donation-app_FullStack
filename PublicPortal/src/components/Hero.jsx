@@ -27,22 +27,25 @@ const Hero = () => {
 
           {/* Description */}
           <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-200 mb-6 sm:mb-8 leading-relaxed max-w-xl">
-            Join us in making a difference. Every drop counts, and together we
-            can save lives. Be a hero today!
+            Ready to Save Lives? Join thousands of donors and recipients who are making a difference every day.{" "}
+            <Link
+              to="/register"
+              className="text-red-400 font-semibold hover:text-red-300 underline transition-colors duration-300"
+            >
+              Become a Donor
+            </Link>{" "}
+            Find Blood Now
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-            <ScrollLink 
-              to="contact" 
-              smooth={true} 
-              duration={600} 
-              offset={-80} 
+            <Link
+              to="/register"
               className="group flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-lg text-white font-semibold text-sm sm:text-base transition-all duration-300 cursor-pointer hover:scale-105 hover:shadow-xl"
             >
               <FaTint className="group-hover:animate-bounce" />
-              Donate Now
-            </ScrollLink>
+              Become a Donor
+            </Link>
             
             <a
               href="tel:+977987635433"
