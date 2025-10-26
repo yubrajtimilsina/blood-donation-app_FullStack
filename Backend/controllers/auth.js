@@ -6,6 +6,7 @@ const Hospital = require("../models/Hospital");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const dotenv = require("dotenv");
+const emailService = require("../utils/emailService");
 
 dotenv.config();
 
@@ -87,6 +88,15 @@ const registerUser = async (req, res) => {
       const savedHospital = await hospitalProfile.save();
       savedUser.hospitalProfile = savedHospital._id;
       await savedUser.save();
+    }
+
+    // Send welcome email
+    try {
+      await emailService.sendWelcomeEmail(savedUser.email, savedUser.name, savedUser.role);
+      console.log('Welcome email sent to:', savedUser.email);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Don't fail registration if email fails
     }
 
     // Remove password from response
@@ -301,18 +311,23 @@ const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     await user.save();
 
-    // For now, just return the token in response (in production, send via email)
-    // TODO: Integrate email service (e.g., Nodemailer with SendGrid/Mailgun)
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
-
-    console.log('Password reset token generated for:', email);
-    console.log('Reset URL:', resetUrl);
+    // Send password reset email
+    try {
+      await emailService.sendPasswordResetEmail(email, resetToken);
+      console.log('Password reset email sent to:', email);
+    } catch (emailError) {
+      console.error('Failed to send password reset email:', emailError);
+      // Don't fail the request if email fails, just log it
+    }
 
     res.status(200).json({
       success: true,
       message: "If an account with that email exists, a password reset link has been sent.",
       // In development, include the reset URL for testing
-      ...(process.env.NODE_ENV === 'development' && { resetUrl, resetToken })
+      ...(process.env.NODE_ENV === 'development' && {
+        resetUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`,
+        resetToken
+      })
     });
   } catch (error) {
     console.error("Forgot password error:", error);
