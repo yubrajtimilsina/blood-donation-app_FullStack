@@ -113,40 +113,40 @@ const RecipientDashboard = () => {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm text-gray-600 mb-1">Total Requests</div>
+                <div className="text-lg text-gray-900 mb-1">Total Requests</div>
                 <div className="text-3xl font-bold text-gray-800">{stats.total}</div>
               </div>
-              <FaHospital className="text-4xl text-blue-500 opacity-20" />
+              <FaHospital className="text-4xl text-blue-500 opacity-90" />
             </div>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm text-gray-600 mb-1">Pending</div>
+                <div className="text-lg text-gray-900 mb-1">Pending</div>
                 <div className="text-3xl font-bold text-yellow-600">{stats.pending}</div>
               </div>
-              <FaClock className="text-4xl text-yellow-500 opacity-20" />
+              <FaClock className="text-4xl text-yellow-500 opacity-90" />
             </div>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm text-gray-600 mb-1">Fulfilled</div>
+                <div className="text-lg text-gray-900 mb-1">Fulfilled</div>
                 <div className="text-3xl font-bold text-green-600">{stats.fulfilled}</div>
               </div>
-              <FaCheckCircle className="text-4xl text-green-500 opacity-20" />
+              <FaCheckCircle className="text-4xl text-green-500 opacity-90" />
             </div>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm text-gray-600 mb-1">Cancelled</div>
+                <div className="text-lg text-gray-900 mb-1">Cancelled</div>
                 <div className="text-3xl font-bold text-red-600">{stats.cancelled}</div>
               </div>
-              <FaTimesCircle className="text-4xl text-red-500 opacity-20" />
+              <FaTimesCircle className="text-4xl text-red-500 opacity-90" />
             </div>
           </div>
         </div>

@@ -48,21 +48,35 @@ const HospitalInventory = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
 
     try {
-      // ✅ FIXED: Use correct endpoint
+      // Backend expects individual bloodGroup and units fields
+      // Send all blood types in the correct format
+      const updatePayload = {
+        bloodInventory: {
+          'A+': inventory['A+'],
+          'A-': inventory['A-'],
+          'B+': inventory['B+'],
+          'B-': inventory['B-'],
+          'AB+': inventory['AB+'],
+          'AB-': inventory['AB-'],
+          'O+': inventory['O+'],
+          'O-': inventory['O-']
+        }
+      };
+
       await publicRequest.put(
         '/hospitals/inventory',
-        { bloodInventory: inventory },
+        updatePayload,
         { headers: { token: `Bearer ${user.accessToken}` } }
       );
       toast.success('Inventory updated successfully!');
     } catch (error) {
-      console.error('Error updating inventory:', error);
-      toast.error('Failed to update inventory');
+      console.error('Error updating inventory:', error.response?.data || error);
+      toast.error(error.response?.data?.message || 'Failed to update inventory');
     } finally {
       setSaving(false);
     }

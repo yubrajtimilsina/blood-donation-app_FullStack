@@ -23,10 +23,11 @@ const Home = () => {
       </Element>
       <EmergencyCTA />
       <Testimonials />
-      <NewsUpdates />
+      
       <Element name="contact">
       <Contact />
       </Element>
+      <NewsUpdates />
       <Footer />
     </div>
   )

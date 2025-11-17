@@ -177,29 +177,31 @@ const NewsUpdates = () => {
         </div>
 
         {/* Newsletter Signup */}
-        <div className="mt-16 bg-gradient-to-r from-red-500 to-red-600 rounded-3xl p-8 lg:p-12 text-white text-center">
-          <h3 className="text-3xl font-bold mb-4">
-            Stay Updated
-          </h3>
-          <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-            Subscribe to our newsletter and be the first to know about new campaigns, emergency needs, and success stories.
-          </p>
+        <div className="mt-16 bg-gradient-to-r from-red-500 to-red-600 rounded-3xl p-8 lg:p-12 text-white text-left">
+  <h3 className="text-3xl font-bold mb-4 text-left">
+    Stay Updated
+  </h3>
 
-          <div className="max-w-md mx-auto flex gap-4">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
-            />
-            <button className="bg-white text-red-500 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-              Subscribe
-            </button>
-          </div>
+  <p className="mb-8 opacity-90 max-w-2xl">
+    Subscribe to our newsletter and be the first to know about new campaigns, emergency needs, and success stories.
+  </p>
 
-          <p className="text-sm opacity-75 mt-4">
-            We respect your privacy. Unsubscribe at any time.
-          </p>
-        </div>
+  <div className="max-w-md flex gap-4">
+    <input
+      type="email"
+      placeholder="Enter your email"
+      className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
+    />
+    <button className="bg-white text-red-500 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+      Subscribe
+    </button>
+  </div>
+
+  <p className="text-sm opacity-75 mt-4">
+    We respect your privacy. Unsubscribe at any time.
+  </p>
+</div>
+
       </div>
     </div>
   );

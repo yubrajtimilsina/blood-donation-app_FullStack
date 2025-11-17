@@ -87,21 +87,18 @@ const updateHospitalProfile = async (req, res) => {
 const updateBloodInventory = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { bloodGroup, units } = req.body;
+    const { bloodInventory } = req.body;
 
-    if (!bloodGroup || units === undefined) {
+    if (!bloodInventory || typeof bloodInventory !== 'object') {
       return res.status(400).json({
         success: false,
-        message: "Blood group and units are required"
+        message: "bloodInventory object is required"
       });
     }
 
-    const updateQuery = {};
-    updateQuery[`bloodInventory.${bloodGroup}`] = units;
-
     const hospital = await Hospital.findOneAndUpdate(
       { userId },
-      { $set: updateQuery },
+      { bloodInventory },
       { new: true }
     );
 
@@ -111,8 +108,7 @@ const updateBloodInventory = async (req, res) => {
         message: "Hospital not found"
       });
     }
-
-    res.status(200).json({
+     res.status(200).json({
       success: true,
       data: hospital.bloodInventory,
       message: "Blood inventory updated successfully"
@@ -126,6 +122,7 @@ const updateBloodInventory = async (req, res) => {
     });
   }
 };
+
 
 // Get blood inventory
 const getBloodInventory = async (req, res) => {
