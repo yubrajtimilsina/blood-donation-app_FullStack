@@ -62,7 +62,7 @@ const Register = () => {
       setLoading(false);
     }
   };
-  
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center p-4">
@@ -202,19 +202,40 @@ const Register = () => {
 
             {/* Role Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Register As *
-              </label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              >
-                <option value="donor">Blood Donor</option>
-                <option value="recipient">Blood Recipient</option>
-              </select>
+              <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Register As *
+  </label>
+
+  <div className="flex gap-4">
+    {/* Donor Button */}
+    <button
+      type="button"
+      onClick={() => setFormData({ ...formData, role: "donor" })}
+      className={`flex-1 py-3 rounded-lg border font-medium transition 
+        ${formData.role === "donor" 
+          ? "bg-red-500 text-white border-red-500" 
+          : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+        }`}
+    >
+      Blood Donor
+    </button>
+
+    {/* Recipient Button */}
+    <button
+      type="button"
+      onClick={() => setFormData({ ...formData, role: "recipient" })}
+      className={`flex-1 py-3 rounded-lg border font-medium transition 
+        ${formData.role === "recipient" 
+          ? "bg-red-500 text-white border-red-500" 
+          : "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+        }`}
+    >
+      Blood Recipient
+    </button>
+  </div>
+</div>
+
             </div>
 
             {/* Blood Group (only for donors) */}
