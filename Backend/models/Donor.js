@@ -69,6 +69,11 @@ const DonorSchema = mongoose.Schema({
   nextEligibleDate: {
     type: Date
   },
+  isNotifiedForEligibility: {
+     type: Boolean, 
+     default: false
+     },
+     
   totalDonations: {
     type: Number,
     default: 0

@@ -446,99 +446,112 @@ const getAllUsersForChat = async (req, res) => {
 const sendBloodDonationReminders = async (req, res) => {
   try {
     const { bloodType, minDays = 90 } = req.body;
+    const emailService = require('../utils/emailService');
 
-    // Build filter for donors
-    const donorFilter = { isAvailable: true }; // Only send to available donors
+    // Build filter for donors - look for eligible candidates
+    const donorFilter = {};
 
     // If specific blood type is requested
     if (bloodType) {
       donorFilter.bloodgroup = bloodType;
     }
 
-    // Find all available donors (we'll check eligibility in the loop for backward compatibility)
-    const donors = await Donor.find(donorFilter);
+    // ✅ FIXED: Find donors who either:
+    // 1. Have a nextEligibleDate that is today or earlier and haven't been notified
+    // 2. Have a lastDonationDate but no nextEligibleDate (for backward compatibility)
+    const donors = await Donor.find({
+      $or: [
+        // Case 1: nextEligibleDate calculated and eligible
+        {
+          ...donorFilter,
+          nextEligibleDate: { $lte: new Date() },
+          isNotifiedForEligibility: { $ne: true }
+        },
+        // Case 2: Only lastDonationDate exists (backward compatibility)
+        {
+          ...donorFilter,
+          lastDonationDate: { $exists: true, $ne: null },
+          nextEligibleDate: { $exists: false },
+          isNotifiedForEligibility: { $ne: true }
+        }
+      ]
+    });
 
     if (donors.length === 0) {
       return res.status(200).json({
         success: true,
-        message: `No available donors found for blood type ${bloodType || 'all types'}`,
-        data: { sent: 0, total: 0 }
+        message: `No eligible donors found for blood type ${bloodType || 'all types'}`,
+        data: { sent: 0, total: 0, skipped: 0 }
       });
     }
 
     let sentCount = 0;
+    let skippedCount = 0;
     const today = new Date();
-
-    // Import email service
-    const ejs = require('ejs');
-    const path = require('path');
-    const sendMail = require('../../BackgroundServices/helpers/sendmail');
+    today.setHours(0, 0, 0, 0);
 
     for (let donor of donors) {
       try {
-        // Check eligibility
-        let isEligible = true;
+        // ✅ FIXED: Consistent eligibility check
+        let isEligible = false;
+        let donationDateToUse = null;
 
-        if (donor.nextEligibleDate && donor.nextEligibleDate > today) {
-          isEligible = false;
-        } else if (donor.lastDonationDate) {
-          // If lastDonationDate exists but nextEligibleDate is null, calculate it
-          const nextDate = new Date(donor.lastDonationDate);
-          nextDate.setDate(nextDate.getDate() + 90);
-          if (nextDate > today) {
-            isEligible = false;
+        // Primary check: nextEligibleDate
+        if (donor.nextEligibleDate) {
+          if (donor.nextEligibleDate <= today) {
+            isEligible = true;
+            donationDateToUse = donor.lastDonationDate;
           }
-        } else if (donor.date) {
-          // Fallback to old date field
-          const donorDate = new Date(donor.date);
-          const diffTime = Math.abs(today - donorDate);
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          if (diffDays < minDays) {
-            isEligible = false;
+        } 
+        // Fallback: lastDonationDate calculation
+        else if (donor.lastDonationDate) {
+          const nextEligibleDate = new Date(donor.lastDonationDate);
+          nextEligibleDate.setDate(nextEligibleDate.getDate() + 90);
+          
+          if (nextEligibleDate <= today) {
+            isEligible = true;
+            donationDateToUse = donor.lastDonationDate;
           }
         }
-        // If no date fields, assume eligible
 
-        if (!isEligible) continue;
+        if (!isEligible) {
+          skippedCount++;
+          continue;
+        }
 
-        // Send reminder email
+        // Send reminder email using emailService
         try {
-          const templatePath = path.join(__dirname, '../../BackgroundServices/templates/BloodDonationReminder.ejs');
-          const html = await new Promise((resolve, reject) => {
-            ejs.renderFile(
-              templatePath,
-              {
-                name: donor.name,
-                date: (donor.lastDonationDate || donor.date || 'N/A').toString().split('T')[0],
-              },
-              (err, data) => {
-                if (err) {
-                  console.error('EJS render error:', err);
-                  reject(err);
-                } else {
-                  resolve(data);
-                }
-              }
-            );
+          await emailService.sendDonationReminderEmail(
+            donor.email,
+            donor.name,
+            donationDateToUse || new Date()
+          );
+
+          // Create in-app notification
+          await Notification.create({
+            userId: donor.userId || donor._id,
+            type: 'donation_reminder',
+            title: 'Time to Donate Blood Again',
+            message: `You are now eligible to donate ${bloodType || 'blood'}. Your donation can save up to 3 lives!`,
+            relatedModel: 'Donor',
+            relatedId: donor._id,
+            priority: 'high',
+            actionUrl: '/donor/donate'
           });
 
-          let messageoptions = {
-            from: process.env.EMAIL_USER,
-            to: donor.email,
-            subject: `Urgent: ${bloodType || 'Blood'} Donation Needed - Your Help Matters`,
-            html: html,
-          };
+          // Mark as notified
+          donor.isNotifiedForEligibility = true;
+          await donor.save();
 
-          await sendMail(messageoptions);
           sentCount++;
-
+          console.log(`📧 Reminder sent to ${donor.email}`);
         } catch (emailError) {
-          console.error('Email send error for donor:', donor.email, emailError);
-          // Continue with next donor instead of failing completely
+          console.error('Email send error for donor:', donor.email, emailError.message);
+          skippedCount++;
         }
       } catch (error) {
-        console.error(`Error processing donor ${donor.email}:`, error);
-        // Continue with next donor
+        console.error(`Error processing donor ${donor.email}:`, error.message);
+        skippedCount++;
       }
     }
 
@@ -548,6 +561,7 @@ const sendBloodDonationReminders = async (req, res) => {
       data: {
         sent: sentCount,
         total: donors.length,
+        skipped: skippedCount,
         bloodType: bloodType || 'all'
       }
     });

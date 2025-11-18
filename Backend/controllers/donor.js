@@ -132,6 +132,16 @@ const searchNearbyDonors = async (req, res) => {
 // Update donor
 const updateDonor = async (req, res) => {
     try {
+        const { id } = req.params;
+        
+        // Validate MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid donor ID format"
+            });
+        }
+
         const updates = req.body;
 
         // Geocode address if being updated
@@ -148,7 +158,7 @@ const updateDonor = async (req, res) => {
         }
 
         const updatedDonor = await Donor.findByIdAndUpdate(
-            req.params.id,
+            id,
             { $set: updates },
             { new: true }
         );
@@ -166,6 +176,7 @@ const updateDonor = async (req, res) => {
             message: "Donor updated successfully"
         });
     } catch (error) {
+        console.error("Error updating donor:", error);
         res.status(500).json({
             success: false,
             message: "Failed to update donor",
@@ -347,16 +358,24 @@ const recordDonation = async (req, res) => {
 
         await donation.save();
 
-        // Update donor info
-        await Donor.findByIdAndUpdate(donorId, {
-            $inc: { totalDonations: 1 },
-            lastDonationDate: new Date(),
-            date: new Date().toISOString().split('T')[0]
-        });
+        // ✅ FIXED: Calculate next eligible date properly (90 days from now)
+        const now = new Date();
+        const nextEligibleDate = new Date(now);
+        nextEligibleDate.setDate(nextEligibleDate.getDate() + 90);
+
+        // Update donor info after donation
+        const updatedDonor = await Donor.findByIdAndUpdate(donorId, {
+          $inc: { totalDonations: 1 },
+          lastDonationDate: now,
+          nextEligibleDate: nextEligibleDate, // Properly set next eligible date
+          date: now.toISOString().split('T')[0],
+          isNotifiedForEligibility: false  // Reset notification flag for future reminders
+        }, { new: true });
 
         res.status(201).json({
             success: true,
             data: donation,
+            donorInfo: updatedDonor,
             message: 'Donation recorded successfully'
         });
     } catch (error) {

@@ -77,8 +77,17 @@ const DonorProfile = () => {
     setSaving(true);
 
     try {
+      // Extract the donor ID from the id parameter (which is the donor's _id)
+      const donorId = id || user?.donorProfile?._id || user?.donorProfile;
+      
+      if (!donorId) {
+        toast.error('Donor profile ID not found');
+        setSaving(false);
+        return;
+      }
+
       await publicRequest.put(
-        `/donors/${user.donorProfile}`,
+        `/donors/${donorId}`,
         formData,
         { headers: { token: `Bearer ${user.accessToken}` } }
       );

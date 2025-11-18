@@ -46,7 +46,7 @@ const HospitalNotifications = () => {
         headers: { token: `Bearer ${user.accessToken}` }
       });
       setNotifications(notifications.map(notif =>
-        notif._id === notificationId ? { ...notif, isRead: true } : notif
+        notif._id === notificationId ? { ...notif, read: true } : notif
       ));
       setUnreadCount(Math.max(0, unreadCount - 1));
       toast.success('Notification marked as read');
@@ -61,7 +61,7 @@ const HospitalNotifications = () => {
       await publicRequest.put('/notifications/read-all', {}, {
         headers: { token: `Bearer ${user.accessToken}` }
       });
-      setNotifications(notifications.map(notif => ({ ...notif, isRead: true })));
+      setNotifications(notifications.map(notif => ({ ...notif, read: true })));
       setUnreadCount(0);
       toast.success('All notifications marked as read');
     } catch (error) {
@@ -164,7 +164,7 @@ const HospitalNotifications = () => {
               <div
                 key={notification._id}
                 className={`bg-white rounded-lg shadow-sm border-l-4 p-6 transition-all ${
-                  notification.isRead
+                  notification.read
                     ? 'border-gray-300 opacity-75'
                     : `border-green-500 ${getNotificationColor(notification.type)}`
                 }`}
@@ -176,30 +176,30 @@ const HospitalNotifications = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className={`text-lg font-semibold mb-2 ${
-                        notification.isRead ? 'text-gray-700' : 'text-gray-900'
+                        notification.read ? 'text-gray-700' : 'text-gray-900'
                       }`}>
                         {notification.title}
                       </h3>
                       <p className={`text-sm mb-3 ${
-                        notification.isRead ? 'text-gray-500' : 'text-gray-700'
+                        notification.read ? 'text-gray-500' : 'text-gray-700'
                       }`}>
                         {notification.message}
                       </p>
                       <div className="flex items-center gap-4 text-xs text-gray-500">
                         <span>{new Date(notification.createdAt).toLocaleString()}</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          notification.isRead
+                          notification.read
                             ? 'bg-gray-100 text-gray-600'
                             : 'bg-green-100 text-green-800'
                         }`}>
-                          {notification.isRead ? 'Read' : 'Unread'}
+                          {notification.read ? 'Read' : 'Unread'}
                         </span>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex gap-2">
-                    {!notification.isRead && (
+                    {!notification.read && (
                       <button
                         onClick={() => markAsRead(notification._id)}
                         className="text-green-600 hover:text-green-800 p-2 rounded-lg hover:bg-green-50 transition-colors"

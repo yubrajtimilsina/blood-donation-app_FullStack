@@ -3,6 +3,9 @@ const dotenv = require('dotenv');
 const dbConnection = require('./utils/db');
 const http = require('http');
 const { Server } = require('socket.io');
+const { startDonationReminderCron } = require('./utils/donationReminderCron');
+const { startLowInventoryAlertCron } = require('./utils/lowInventoryAlertCron');
+
 
 dotenv.config();
 
@@ -25,6 +28,7 @@ const io = new Server(server, {
 // Store online users with additional info
 const onlineUsers = new Map(); // userId -> { socketId, role, socketInstance }
 const userSockets = new Map(); // socketId -> userId
+
 
 io.on('connection', (socket) => {
   console.log('✅ User connected:', socket.id);
@@ -248,6 +252,9 @@ process.on('SIGTERM', () => {
     process.exit(0);
   });
 });
+
+startDonationReminderCron();
+startLowInventoryAlertCron();
 
 server.listen(PORT, () => {
     console.log(`🚀 Server is running on port ${PORT}`);
