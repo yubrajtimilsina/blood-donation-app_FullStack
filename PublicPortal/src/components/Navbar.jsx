@@ -1,7 +1,7 @@
 import { Link as ScrollLink } from "react-scroll";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { FaBars, FaTimes, FaSignInAlt, FaUserPlus, FaTint } from "react-icons/fa";
+import { FaBars, FaTimes, FaSignInAlt, FaUserPlus, FaExclamationTriangle } from "react-icons/fa";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -18,7 +18,7 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
-          
+
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer">
             <img src="/logo2.png" alt="LifeLink" className="h-8 w-8 lg:h-10 lg:w-10" />
@@ -31,40 +31,62 @@ const Navbar = () => {
               to="hero"
               smooth={true}
               duration={1000}
-              className="text-sm lg:text-base font-medium text-gray-700 hover:text-red-500 transition duration-300 cursor-pointer"
+              className="text-sm lg:text-base font-medium text-gray-700 hover:text-red-500 transition cursor-pointer"
             >
               Home
             </ScrollLink>
+
             <ScrollLink
               to="featured"
               smooth={true}
               duration={1000}
-              className="text-sm lg:text-base font-medium text-gray-700 hover:text-red-500 transition duration-300 cursor-pointer"
+              className="text-sm lg:text-base font-medium text-gray-700 hover:text-red-500 transition cursor-pointer"
             >
               About Us
             </ScrollLink>
+
             <ScrollLink
               to="contact"
               smooth={true}
               duration={1000}
-              className="text-sm lg:text-base font-medium text-gray-700 hover:text-red-500 transition duration-300 cursor-pointer"
+              className="text-sm lg:text-base font-medium text-gray-700 hover:text-red-500 transition cursor-pointer"
             >
               Donate Now
             </ScrollLink>
+
+            {/* FAQ */}
+            <Link
+              to="/faq"
+              className="text-sm lg:text-base font-medium text-gray-700 hover:text-red-500 transition cursor-pointer"
+            >
+              FAQ
+            </Link>
+
+            {/* Emergency */}
+           <ScrollLink
+  to="emergency"
+  smooth={true}
+  duration={1000}
+  className="flex items-center gap-1 text-sm lg:text-base font-medium text-red-600 hover:text-red-700 transition cursor-pointer"
+>
+  <FaExclamationTriangle className="text-red-600" />
+  Emergency
+</ScrollLink>
+
           </div>
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
             <Link
               to="/login"
-              className="flex items-center gap-2 px-4 py-2 text-sm lg:text-base font-medium text-gray-700 hover:text-red-500 transition duration-300"
+              className="flex items-center gap-2 px-4 py-2 text-sm lg:text-base font-medium text-gray-700 hover:text-red-500 transition"
             >
               <FaSignInAlt />
               Login
             </Link>
             <Link
               to="/register"
-              className="flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition duration-300 shadow-md hover:shadow-lg"
+              className="flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition shadow-md hover:shadow-lg"
             >
               <FaUserPlus />
               Register
@@ -74,7 +96,7 @@ const Navbar = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={toggleMobileMenu}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
             aria-label="Toggle mobile menu"
           >
             {isMobileMenuOpen ? (
@@ -89,35 +111,56 @@ const Navbar = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 bg-white shadow-lg">
             <div className="px-4 py-4 space-y-3">
-              
-              {/* Navigation Links */}
+
+              {/* Mobile Links */}
               <ScrollLink
                 to="hero"
                 smooth={true}
                 duration={1000}
                 onClick={handleMenuClick}
-                className="block text-base font-medium text-gray-700 hover:text-red-500 hover:bg-red-50 py-2 px-3 rounded-lg transition duration-300 cursor-pointer"
+                className="block text-base font-medium text-gray-700 hover:text-red-500 hover:bg-red-50 py-2 px-3 rounded-lg transition"
               >
                 Home
               </ScrollLink>
+
               <ScrollLink
                 to="featured"
                 smooth={true}
                 duration={1000}
                 onClick={handleMenuClick}
-                className="block text-base font-medium text-gray-700 hover:text-red-500 hover:bg-red-50 py-2 px-3 rounded-lg transition duration-300 cursor-pointer"
+                className="block text-base font-medium text-gray-700 hover:text-red-500 hover:bg-red-50 py-2 px-3 rounded-lg transition"
               >
                 About Us
               </ScrollLink>
+
               <ScrollLink
                 to="contact"
                 smooth={true}
                 duration={1000}
                 onClick={handleMenuClick}
-                className="block text-base font-medium text-gray-700 hover:text-red-500 hover:bg-red-50 py-2 px-3 rounded-lg transition duration-300 cursor-pointer"
+                className="block text-base font-medium text-gray-700 hover:text-red-500 hover:bg-red-50 py-2 px-3 rounded-lg transition"
               >
                 Donate Now
               </ScrollLink>
+
+              {/* FAQ */}
+              <Link
+                to="/faq"
+                onClick={handleMenuClick}
+                className="block text-base font-medium text-gray-700 hover:text-red-500 hover:bg-red-50 py-2 px-3 rounded-lg transition"
+              >
+                FAQ
+              </Link>
+
+              {/* Emergency */}
+              <Link
+                to="/emergency"
+                onClick={handleMenuClick}
+                className="flex items-center gap-2 text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 py-2 px-3 rounded-lg transition"
+              >
+                <FaExclamationTriangle />
+                Emergency
+              </Link>
 
               {/* Divider */}
               <div className="border-t border-gray-200 my-3"></div>
@@ -126,15 +169,16 @@ const Navbar = () => {
               <Link
                 to="/login"
                 onClick={handleMenuClick}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition duration-300"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
               >
                 <FaSignInAlt />
                 Login
               </Link>
+
               <Link
                 to="/register"
                 onClick={handleMenuClick}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition duration-300"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition"
               >
                 <FaUserPlus />
                 Register Now

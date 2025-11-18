@@ -457,12 +457,86 @@ const acceptBloodRequest = async (req, res) => {
     }
 };
 
+// Add this new controller method
+
+// Donor responds to a blood request
+const respondToBloodRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { donorId, donorName, donorPhone, donorEmail, bloodGroup, unitsOffered } = req.body;
+
+    const request = await BloodRequest.findByIdAndUpdate(
+      id,
+      {
+        $push: {
+          responses: {
+            donorId,
+            donorName,
+            donorPhone,
+            donorEmail,
+            bloodGroup,
+            unitsOffered,
+            status: 'pending',
+            respondedAt: new Date()
+          }
+        }
+      },
+      { new: true }
+    );
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        message: 'Blood request not found'
+      });
+    }
+
+    // Create notification for hospital
+    const Notification = require('../models/Notification');
+    await Notification.create({
+      userId: request.createdBy,
+      type: 'blood_request',
+      title: 'New Donor Response',
+      message: `${donorName} has responded to your ${bloodGroup} blood request with ${unitsOffered} units`,
+      relatedId: request._id,
+      relatedModel: 'BloodRequest',
+      priority: request.urgency === 'critical' ? 'urgent' : 'high',
+      actionUrl: `/blood-request/${request._id}`
+    });
+
+    // Emit socket event
+    if (global.io) {
+      global.io.to(`hospital-${request.createdBy}`).emit('donorResponded', {
+        requestId: request._id,
+        donorName,
+        donorPhone,
+        bloodGroup,
+        unitsOffered
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: request,
+      message: 'Donor response recorded successfully'
+    });
+  } catch (error) {
+    console.error('Error responding to blood request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to record donor response',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
-    createBloodRequest,
-    getAllBloodRequests,
-    getNearbyRequests,
-    getBloodRequest,
-    updateBloodRequestStatus,
-    deleteBloodRequest,
-    acceptBloodRequest  // NEW
+  createBloodRequest,
+  getAllBloodRequests,
+  getNearbyRequests,
+  getBloodRequest,
+  updateBloodRequestStatus,
+  deleteBloodRequest,
+  acceptBloodRequest,
+  respondToBloodRequest
 };

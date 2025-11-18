@@ -85,27 +85,34 @@ const searchNearbyDonors = async (req, res) => {
     try {
         const { latitude, longitude, radius = 50, bloodgroup } = req.query;
 
+        if (!latitude || !longitude) {
+            return res.status(400).json({
+                success: false,
+                message: 'Latitude and longitude are required'
+            });
+        }
+
         const filter = { isAvailable: true };
         if (bloodgroup) {
             filter.bloodgroup = bloodgroup;
         }
 
-        let donors;
+        const radiusInMeters = radius * 1000;
 
-        // If location is provided, use geospatial search
-        if (latitude && longitude) {
-            donors = await findNearby(
-                Donor,
-                [parseFloat(longitude), parseFloat(latitude)],
-                parseInt(radius),
-                filter
-            );
-        } else {
-            // If no location, return all matching donors
-            donors = await Donor.find(filter)
-                .populate('userId', 'name email phone')
-                .limit(50);
-        }
+        const donors = await Donor.find({
+            ...filter,
+            location: {
+                $near: {
+                    $geometry: {
+                        type: 'Point',
+                        coordinates: [parseFloat(longitude), parseFloat(latitude)]
+                    },
+                    $maxDistance: radiusInMeters
+                }
+            }
+        })
+        .populate('userId', 'name email verified')
+        .limit(20);
 
         res.status(200).json({
             success: true,

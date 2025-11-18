@@ -20,6 +20,8 @@ router.get('/nearby', verifyToken, checkRole('donor', 'admin'), getNearbyRequest
 // Get all blood requests (GENERIC)
 router.get('/', getAllBloodRequests);
 
+//router.post('/:id/respond', verifyToken, respondToBloodRequest);
+
 // Get single blood request
 router.get('/:id', getBloodRequest);
 

@@ -21,7 +21,9 @@ const Home = () => {
       <Element name="featured">
       <Featured />
       </Element>
+      <Element name="emergency">
       <EmergencyCTA />
+      </Element>
       <Testimonials />
       
       <Element name="contact">
