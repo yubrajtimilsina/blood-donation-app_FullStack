@@ -13,7 +13,6 @@ const Chat = () => {
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  // ✅ Initialize socket connection when user logs in
   useEffect(() => {
     if (user) {
       const socket = io('http://localhost:3000', {
@@ -21,35 +20,26 @@ const Chat = () => {
       });
       socketRef.current = socket;
 
-      // Join room
       socket.emit('join', user._id);
 
-      // ✅ Listen for incoming messages
       socket.on('receiveMessage', (data) => {
         if (data.chatId === selectedChat?._id) {
           setMessages((prev) => [...prev, data]);
         }
-        fetchChats(); // refresh chat list with latest message
+        fetchChats();
       });
 
-      // ✅ Typing indicators
       socket.on('userTyping', (data) => {
-        if (data.chatId === selectedChat?._id) {
-          setIsTyping(true);
-        }
+        if (data.chatId === selectedChat?._id) setIsTyping(true);
       });
       socket.on('userStopTyping', (data) => {
-        if (data.chatId === selectedChat?._id) {
-          setIsTyping(false);
-        }
+        if (data.chatId === selectedChat?._id) setIsTyping(false);
       });
 
-      // ✅ Cleanup
       return () => socket.disconnect();
     }
   }, [user, selectedChat]);
 
-  // ✅ Fetch all user chats
   const fetchChats = async () => {
     try {
       const res = await userRequest.get('/chats');
@@ -59,7 +49,6 @@ const Chat = () => {
     }
   };
 
-  // ✅ Fetch messages for a selected chat
   const fetchMessages = async (chatId) => {
     try {
       const res = await userRequest.get(`/chats/${chatId}`);
@@ -69,23 +58,19 @@ const Chat = () => {
     }
   };
 
-  // Load chats on mount
   useEffect(() => {
     if (user) fetchChats();
   }, [user]);
 
-  // Auto scroll to bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // ✅ Handle selecting a chat
   const handleChatSelect = (chat) => {
     setSelectedChat(chat);
     fetchMessages(chat._id);
   };
 
-  // ✅ Handle sending a message
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedChat) return;
@@ -95,12 +80,10 @@ const Chat = () => {
     )?.userId._id;
 
     try {
-      // Save to database
       await userRequest.post(`/chats/${selectedChat._id}/messages`, {
         content: newMessage.trim(),
       });
 
-      // Emit real-time message
       socketRef.current?.emit('sendMessage', {
         chatId: selectedChat._id,
         message: newMessage.trim(),
@@ -108,7 +91,6 @@ const Chat = () => {
         receiverId,
       });
 
-      // Optimistically update UI
       setMessages((prev) => [
         ...prev,
         {
@@ -125,55 +107,50 @@ const Chat = () => {
     }
   };
 
-  // ✅ Handle typing indicators
   const handleTyping = () => {
     if (!selectedChat) return;
     const receiverId = selectedChat.participants.find(
       (p) => p.userId._id !== user._id
     )?.userId._id;
 
-    const socket = socketRef.current;
-    socket?.emit('typing', { chatId: selectedChat._id, receiverId });
+    socketRef.current?.emit('typing', { chatId: selectedChat._id, receiverId });
 
-    // Auto stop typing after 2 seconds
     setTimeout(() => {
-      socket?.emit('stopTyping', { chatId: selectedChat._id, receiverId });
+      socketRef.current?.emit('stopTyping', { chatId: selectedChat._id, receiverId });
     }, 2000);
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar: Chat List */}
-      <div className="w-1/3 bg-white border-r border-gray-200">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Messages</h2>
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className="w-1/3 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+        <div className="p-5 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-800">Messages</h2>
         </div>
-        <div className="overflow-y-auto h-full">
+        <div className="overflow-y-auto flex-1">
           {chats.map((chat) => {
             const other = chat.participants.find((p) => p.userId._id !== user._id);
             return (
               <div
                 key={chat._id}
                 onClick={() => handleChatSelect(chat)}
-                className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
-                  selectedChat?._id === chat._id
-                    ? 'bg-blue-50 border-l-4 border-blue-500'
-                    : ''
+                className={`flex items-center p-4 cursor-pointer transition-all duration-200 hover:bg-blue-50 ${
+                  selectedChat?._id === chat._id ? 'bg-blue-100 border-l-4 border-blue-500' : ''
                 }`}
               >
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {other?.userId?.name?.charAt(0)?.toUpperCase()}
-                  </div>
-                  <div className="ml-3 flex-1">
-                    <p className="font-medium text-gray-900">{other?.userId?.name}</p>
-                    <p className="text-sm text-gray-500">{other?.role}</p>
-                    {chat.lastMessage && (
-                      <p className="text-sm text-gray-600 truncate mt-1">
-                        {chat.lastMessage.content}
-                      </p>
-                    )}
-                  </div>
+                <img
+                  src={other?.userId?.avatar || `https://ui-avatars.com/api/?name=${other?.userId?.name}`}
+                  alt="avatar"
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+                <div className="ml-3 flex-1">
+                  <p className="font-semibold text-gray-900">{other?.userId?.name}</p>
+                  <p className="text-sm text-gray-500">{other?.role}</p>
+                  {chat.lastMessage && (
+                    <p className="text-sm text-gray-600 truncate mt-1">
+                      {chat.lastMessage.content}
+                    </p>
+                  )}
                 </div>
               </div>
             );
@@ -181,77 +158,66 @@ const Chat = () => {
         </div>
       </div>
 
-      {/* Chat area */}
+      {/* Chat Area */}
       <div className="flex-1 flex flex-col">
         {selectedChat ? (
           <>
             {/* Header */}
-            <div className="p-4 bg-white border-b flex items-center">
-              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                {
+            <div className="p-4 bg-white border-b flex items-center shadow-sm">
+              <img
+                src={
                   selectedChat.participants.find(
                     (p) => p.userId._id !== user._id
-                  )?.userId.name?.charAt(0).toUpperCase()
+                  )?.userId.avatar ||
+                  `https://ui-avatars.com/api/?name=${selectedChat.participants.find(
+                    (p) => p.userId._id !== user._id
+                  )?.userId.name}`
                 }
-              </div>
+                alt="avatar"
+                className="w-12 h-12 rounded-full object-cover"
+              />
               <div className="ml-3">
-                <p className="font-medium text-gray-900">
-                  {
-                    selectedChat.participants.find(
-                      (p) => p.userId._id !== user._id
-                    )?.userId.name
-                  }
+                <p className="font-semibold text-gray-900">
+                  {selectedChat.participants.find((p) => p.userId._id !== user._id)?.userId.name}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {
-                    selectedChat.participants.find(
-                      (p) => p.userId._id !== user._id
-                    )?.role
-                  }
+                  {selectedChat.participants.find((p) => p.userId._id !== user._id)?.role}
                 </p>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
               {messages.map((m, i) => (
                 <div
                   key={i}
-                  className={`flex ${
-                    m.senderId === user._id ? 'justify-end' : 'justify-start'
-                  }`}
+                  className={`flex ${m.senderId === user._id ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    className={`px-5 py-3 rounded-2xl max-w-xs lg:max-w-md ${
                       m.senderId === user._id
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 text-gray-800'
-                    }`}
+                        ? 'bg-gradient-to-r from-blue-400 to-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-900'
+                    } shadow`}
                   >
-                    <p>{m.message || m.content}</p>
-                    <p
-                      className={`text-xs mt-1 ${
-                        m.senderId === user._id ? 'text-blue-100' : 'text-gray-500'
-                      }`}
-                    >
-                      {new Date(m.timestamp).toLocaleTimeString()}
+                    <p className="break-words">{m.message || m.content}</p>
+                    <p className="text-xs mt-1 text-right text-gray-200">
+                      {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
               ))}
               {isTyping && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg">
+                  <div className="bg-gray-200 px-4 py-2 rounded-xl">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                      <div
-                        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-                        style={{ animationDelay: '0.1s' }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-                        style={{ animationDelay: '0.2s' }}
-                      ></div>
+                      {[0, 1, 2].map((i) => (
+                        <div
+                          key={i}
+                          className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                          style={{ animationDelay: `${i * 0.1}s` }}
+                        ></div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -260,31 +226,34 @@ const Chat = () => {
             </div>
 
             {/* Input */}
-            <div className="p-4 bg-white border-t">
-              <form onSubmit={handleSendMessage} className="flex space-x-2">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => {
-                    setNewMessage(e.target.value);
-                    handleTyping();
-                  }}
-                  placeholder="Type a message..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="submit"
-                  disabled={!newMessage.trim()}
-                  className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Send
-                </button>
-              </form>
+            <div className="p-4 bg-white border-t flex items-center space-x-3">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => {
+                  setNewMessage(e.target.value);
+                  handleTyping();
+                }}
+                placeholder="Type a message..."
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-3xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!newMessage.trim()}
+                className="px-6 py-3 bg-blue-500 text-white rounded-3xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Send
+              </button>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-500">
-            Select a chat to start messaging
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-400 space-y-4">
+            <img
+              src="https://img.icons8.com/ios/100/000000/chat--v1.png"
+              alt="No chat"
+              className="w-24 h-24 opacity-40"
+            />
+            <p className="text-lg font-medium">Select a chat to start messaging</p>
           </div>
         )}
       </div>

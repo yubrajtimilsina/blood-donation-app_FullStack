@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import HowItWorks from '../components/HowItWorks'
 import Featured from '../components/Featured'
+import AvailableDonorsShowcase from '../components/AvailableDonorsShowcase'
 import EmergencyCTA from '../components/EmergencyCTA'
 import Testimonials from '../components/Testimonials'
 import NewsUpdates from '../components/NewsUpdates'
@@ -20,6 +21,9 @@ const Home = () => {
       <HowItWorks />
       <Element name="featured">
       <Featured />
+      </Element>
+      <Element name="donors">
+      <AvailableDonorsShowcase />
       </Element>
       <Element name="emergency">
       <EmergencyCTA />

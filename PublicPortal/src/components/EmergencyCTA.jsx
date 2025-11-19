@@ -19,6 +19,19 @@ const EmergencyCTA = () => {
     phone: '',
     email: ''
   });
+  const [showGuestForm, setShowGuestForm] = useState(false);
+  const [guestFormData, setGuestFormData] = useState({
+    patientName: '',
+    bloodGroup: '',
+    unitsNeeded: '',
+    hospitalName: '',
+    contactPerson: '',
+    contactNumber: '',
+    contactEmail: '',
+    requiredBy: '',
+    address: '',
+    description: ''
+  });
   const user = useSelector((state) => state.user.currentUser);
   const navigate = useNavigate();
 
@@ -99,6 +112,62 @@ const EmergencyCTA = () => {
     } catch (error) {
       console.error('Error submitting response:', error);
       toast.error(error.response?.data?.message || 'Failed to submit response');
+    }
+  };
+
+  const handleGuestFormChange = (e) => {
+    const { name, value } = e.target;
+    setGuestFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmitGuestRequest = async (e) => {
+    e.preventDefault();
+
+    const { patientName, bloodGroup, unitsNeeded, hospitalName, contactPerson, contactNumber } = guestFormData;
+
+    if (!patientName || !bloodGroup || !unitsNeeded || !hospitalName || !contactPerson || !contactNumber) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+
+    try {
+      const payload = {
+        patientName: guestFormData.patientName,
+        bloodGroup: guestFormData.bloodGroup,
+        unitsNeeded: parseInt(guestFormData.unitsNeeded, 10),
+        hospitalName: guestFormData.hospitalName,
+        contactPerson: guestFormData.contactPerson,
+        contactNumber: guestFormData.contactNumber,
+        contactEmail: guestFormData.contactEmail,
+        urgency: 'critical',
+        address: guestFormData.address,
+        requiredBy: guestFormData.requiredBy || new Date().toISOString(),
+        description: guestFormData.description
+      };
+
+      const res = await publicRequest.post('/bloodRequests/emergency/guest', payload);
+
+      toast.success('Emergency request created. Help is on the way!');
+      setShowGuestForm(false);
+      setGuestFormData({
+        patientName: '',
+        bloodGroup: '',
+        unitsNeeded: '',
+        hospitalName: '',
+        contactPerson: '',
+        contactNumber: '',
+        contactEmail: '',
+        requiredBy: '',
+        address: '',
+        description: ''
+      });
+      fetchEmergencyRequests();
+    } catch (error) {
+      console.error('Error creating guest emergency request:', error);
+      toast.error(error.response?.data?.message || 'Failed to create emergency request');
     }
   };
 
@@ -190,13 +259,23 @@ const EmergencyCTA = () => {
                 View Urgent Requests
               </button>
 
-              <Link
-                to={user ? "/recipient/create-request" : "/login"}
-                className="w-full bg-red-500 border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-3"
-              >
-                <FaHospital className="text-xl" />
-                Create Emergency Request
-              </Link>
+              {user ? (
+                <Link
+                  to="/recipient/create-request"
+                  className="w-full bg-red-500 border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-3"
+                >
+                  <FaHospital className="text-xl" />
+                  Create Emergency Request
+                </Link>
+              ) : (
+                <button
+                  onClick={() => setShowGuestForm(true)}
+                  className="w-full bg-red-500 border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-3"
+                >
+                  <FaHospital className="text-xl" />
+                  Create Emergency Request (Guest)
+                </button>
+              )}
 
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -431,6 +510,184 @@ const EmergencyCTA = () => {
           </div>
         </div>
       )}
+
+      
+      {/* Guest Emergency Request Modal */}
+{showGuestForm && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 animate-slideIn">
+      <div className="mb-6">
+        <h3 className="text-2xl font-bold text-gray-800 mb-2">Create Emergency Request (Guest)</h3>
+        <p className="text-gray-600">Provide the basic details and we'll notify nearby donors.</p>
+      </div>
+
+      <form onSubmit={handleSubmitGuestRequest} className="space-y-4">
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Patient Name</label>
+          <input
+            type="text"
+            name="patientName"
+            value={guestFormData.patientName}
+            onChange={handleGuestFormChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-gray-900"
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Blood Group</label>
+            <select
+              name="bloodGroup"
+              value={guestFormData.bloodGroup}
+              onChange={handleGuestFormChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-gray-900"
+              required
+            >
+              <option value="">Select blood group</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Units Needed</label>
+            <input
+              type="number"
+              min="1"
+              name="unitsNeeded"
+              value={guestFormData.unitsNeeded}
+              onChange={handleGuestFormChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-gray-900"
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Hospital / Location</label>
+          <input
+            type="text"
+            name="hospitalName"
+            value={guestFormData.hospitalName}
+            onChange={handleGuestFormChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-gray-900"
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Contact Person</label>
+            <input
+              type="text"
+              name="contactPerson"
+              value={guestFormData.contactPerson}
+              onChange={handleGuestFormChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-gray-900"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Contact Number</label>
+            <input
+              type="tel"
+              name="contactNumber"
+              value={guestFormData.contactNumber}
+              onChange={handleGuestFormChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-gray-900"
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Contact Email (optional)</label>
+          <input
+            type="email"
+            name="contactEmail"
+            value={guestFormData.contactEmail}
+            onChange={handleGuestFormChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-gray-900"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Required By (optional)</label>
+            <input
+              type="date"
+              name="requiredBy"
+              value={guestFormData.requiredBy}
+              onChange={handleGuestFormChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-gray-900"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Address (optional)</label>
+            <input
+              type="text"
+              name="address"
+              value={guestFormData.address}
+              onChange={handleGuestFormChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-gray-900"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Notes / Description (optional)</label>
+          <textarea
+            name="description"
+            value={guestFormData.description}
+            onChange={handleGuestFormChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-gray-900"
+          />
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            type="button"
+            onClick={() => {
+              setShowGuestForm(false);
+              setGuestFormData({
+                patientName: '',
+                bloodGroup: '',
+                unitsNeeded: '',
+                hospitalName: '',
+                contactPerson: '',
+                contactNumber: '',
+                contactEmail: '',
+                requiredBy: '',
+                address: '',
+                description: ''
+              });
+            }}
+            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold"
+          >
+            Create Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
 
       <ToastContainer />
     </div>

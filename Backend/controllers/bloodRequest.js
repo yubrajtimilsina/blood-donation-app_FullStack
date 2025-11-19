@@ -116,7 +116,13 @@ const getAllBloodRequests = async (req, res) => {
         const filter = {};
         if (status) filter.status = status;
         if (bloodGroup) filter.bloodGroup = bloodGroup;
-        if (urgency) filter.urgency = urgency;
+        
+        // ✅ FIX: Support multiple urgency levels (comma-separated or array)
+        if (urgency) {
+            const urgencyArray = Array.isArray(urgency) ? urgency : urgency.split(',').map(u => u.trim());
+            filter.urgency = { $in: urgencyArray };
+        }
+        
         if (userId) filter.createdBy = userId;
 
         const requests = await BloodRequest.find(filter)
@@ -530,6 +536,136 @@ const respondToBloodRequest = async (req, res) => {
   }
 };
 
+// ✅ NEW: Create emergency blood request without login (GUEST)
+const createGuestEmergencyRequest = async (req, res) => {
+  try {
+    const {
+      patientName,
+      bloodGroup,
+      unitsNeeded,
+      hospitalName,
+      contactPerson,
+      contactNumber,
+      contactEmail,
+      urgency = 'critical',
+      address,
+      requiredBy,
+      description
+    } = req.body;
+
+    // Validate required fields
+    if (!patientName || !bloodGroup || !unitsNeeded || !hospitalName || !contactNumber || !contactPerson) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    const requestData = {
+      patientName,
+      bloodGroup,
+      unitsNeeded,
+      hospitalName,
+      contactPerson,
+      contactNumber,
+      urgency,
+      address: address || hospitalName,
+      requiredBy: new Date(requiredBy),
+      description: description || `Emergency blood request for ${patientName}`,
+      status: 'pending',
+      location: { type: 'Point', coordinates: [0, 0] }, // Default location
+      createdBy: null // Guest request - no user
+    };
+
+    const newRequest = new BloodRequest(requestData);
+    const savedRequest = await newRequest.save();
+
+    // Find matching available donors
+    let matchingDonors = [];
+    matchingDonors = await Donor.find({
+      bloodgroup: bloodGroup,
+      isAvailable: true
+    }).limit(20);
+
+    // Send bulk notifications to matching donors
+    const donorUserIds = matchingDonors
+      .map(donor => donor.userId)
+      .filter(id => id);
+
+    if (donorUserIds.length > 0) {
+      await createBulkNotifications(donorUserIds, {
+        type: 'blood_request',
+        title: '🚨 EMERGENCY Blood Request!',
+        message: `Urgent ${bloodGroup} blood needed at ${hospitalName}. Contact: ${contactNumber}`,
+        priority: 'urgent',
+        relatedId: savedRequest._id,
+        relatedModel: 'BloodRequest',
+        actionUrl: `/blood-requests/${savedRequest._id}`
+      });
+    }
+
+    // Broadcast via socket
+    if (global.io) {
+      global.io.emit('emergencyBloodRequest', {
+        requestId: savedRequest._id,
+        bloodGroup,
+        urgency: 'critical',
+        hospitalName,
+        patientName,
+        contactNumber,
+        unitsNeeded,
+        requiredBy,
+        timestamp: new Date()
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      data: savedRequest,
+      notifiedDonors: matchingDonors.length,
+      message: `Emergency blood request created! ${matchingDonors.length} donors notified. Contact: ${contactNumber}`
+    });
+  } catch (error) {
+    console.error('Create guest emergency request error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create emergency request',
+      error: error.message
+    });
+  }
+};
+
+
+ const getAvailableDonors = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 12;
+
+    const donors = await Donor.find({ availability: true })
+      .sort({ lastDonationDate: -1 })
+      .limit(limit);
+
+    const bloodGroupStats = await Donor.aggregate([
+      { $match: { availability: true } },
+      { $group: { _id: "$bloodgroup", count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: donors,
+      bloodGroupStats,
+    });
+
+  } catch (error) {
+    console.error("Error in getAvailableDonors:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+
 module.exports = {
   createBloodRequest,
   getAllBloodRequests,
@@ -538,5 +674,7 @@ module.exports = {
   updateBloodRequestStatus,
   deleteBloodRequest,
   acceptBloodRequest,
-  respondToBloodRequest
+  respondToBloodRequest,
+  createGuestEmergencyRequest,
+  getAvailableDonors
 };

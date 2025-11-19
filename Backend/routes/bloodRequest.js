@@ -5,13 +5,21 @@ const {
     getNearbyRequests,
     getBloodRequest,
     updateBloodRequestStatus,
-    deleteBloodRequest
+    deleteBloodRequest,
+    createGuestEmergencyRequest,
+    getAvailableDonors
 } = require('../controllers/bloodRequest');
 const { verifyToken } = require('../middlewares/verifyToken');
 const { checkRole } = require('../middlewares/roleCheck');
 const router = express.Router();
 
-// Create blood request
+// ✅ NEW: Create emergency request WITHOUT login
+router.post('/emergency/guest', createGuestEmergencyRequest);
+
+// ✅ NEW: Get available donors (PUBLIC - no auth needed)
+router.get('/donors/available', getAvailableDonors);
+
+// Create blood request (authenticated)
 router.post('/', verifyToken, checkRole('recipient', 'hospital', 'admin'), createBloodRequest);
 
 // Get nearby requests for donor (SPECIFIC)
