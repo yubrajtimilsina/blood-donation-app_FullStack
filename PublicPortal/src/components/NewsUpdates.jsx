@@ -3,6 +3,38 @@ import { FaNewspaper, FaCalendarAlt, FaArrowRight, FaExternalLinkAlt } from 'rea
 
 const NewsUpdates = () => {
   const [activeCategory, setActiveCategory] = useState('all');
+   const [email, setEmail] = useState('');
+  const [subscribeLoading, setSubscribeLoading] = useState(false);
+  const [subscribeMessage, setSubscribeMessage] = useState('');
+
+    const handleSubscribe = async (e) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes('@')) {
+      setSubscribeMessage('Please enter a valid email address');
+      return;
+    }
+
+    setSubscribeLoading(true);
+    try {
+      const response = await axios.post(
+        'http://localhost:3000/api/v1/newsletter/subscribe',
+        { email }
+      );
+      
+      setSubscribeMessage('✓ Successfully subscribed! Check your email.');
+      setEmail('');
+      
+      setTimeout(() => setSubscribeMessage(''), 3000);
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || 'Failed to subscribe. Try again.';
+      setSubscribeMessage(errorMsg);
+      
+      setTimeout(() => setSubscribeMessage(''), 3000);
+    } finally {
+      setSubscribeLoading(false);
+    }
+  };
 
   const newsItems = [
     {
@@ -177,30 +209,45 @@ const NewsUpdates = () => {
         </div>
 
         {/* Newsletter Signup */}
-        <div className="mt-16 bg-gradient-to-r from-red-500 to-red-600 rounded-3xl p-8 lg:p-12 text-white text-left">
-  <h3 className="text-3xl font-bold mb-4 text-left">
-    Stay Updated
-  </h3>
+       {/* <div className="mt-16 bg-gradient-to-r from-red-500 to-red-600 rounded-3xl p-8 lg:p-12 text-white text-left">
+          <h3 className="text-3xl font-bold mb-4 text-left">
+            Stay Updated
+          </h3>
 
-  <p className="mb-8 opacity-90 max-w-2xl">
-    Subscribe to our newsletter and be the first to know about new campaigns, emergency needs, and success stories.
-  </p>
+          <p className="mb-8 opacity-90 max-w-2xl">
+            Subscribe to our newsletter and be the first to know about new campaigns, emergency needs, and success stories.
+          </p>
 
-  <div className="max-w-md flex gap-4">
-    <input
-      type="email"
-      placeholder="Enter your email"
-      className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
-    />
-    <button className="bg-white text-red-500 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-      Subscribe
-    </button>
-  </div>
+          <form onSubmit={handleSubscribe} className="max-w-md">
+            <div className="flex gap-4 mb-3">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
+                disabled={subscribeLoading}
+              />
+              <button
+                type="submit"
+                disabled={subscribeLoading}
+                className="bg-white text-red-500 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {subscribeLoading ? 'Subscribing...' : 'Subscribe'}
+              </button>
+            </div>
+             {subscribeMessage && (
+              <p className={`text-sm ${subscribeMessage.includes('✓') ? 'text-green-200' : 'text-yellow-200'}`}>
+                {subscribeMessage}
+              </p>
+            )}
+          </form>
 
-  <p className="text-sm opacity-75 mt-4">
-    We respect your privacy. Unsubscribe at any time.
-  </p>
-</div>
+          <p className="text-sm opacity-75 mt-4">
+            We respect your privacy. Unsubscribe at any time.
+          </p>
+        </div> */}
+
 
       </div>
     </div>

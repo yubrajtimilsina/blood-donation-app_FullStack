@@ -1,5 +1,7 @@
 import React from 'react';
 import { FaUserPlus, FaSearch, FaHandshake, FaTint, FaArrowRight } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+
 
 const HowItWorks = () => {
   const steps = [
@@ -84,9 +86,11 @@ const HowItWorks = () => {
               Join thousands of donors and recipients who are making a difference every day.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-red-500 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg">
-                Become a Donor
-              </button>
+              <Link
+                            to="/register"
+                            className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-red-500 transition-all duration-300 transform hover:scale-105">
+                            Become a Donor
+                          </Link>
               <button className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-red-500 transition-all duration-300 transform hover:scale-105">
                 Find Blood Now
               </button>
